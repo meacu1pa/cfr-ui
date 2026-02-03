@@ -43,6 +43,24 @@ export default defineConfig([
 ])
 ```
 
+## CFR Data Workflow
+
+1. Add your repositories to `repos.json` (name optional):
+   ```
+   [
+     { "name": "react", "url": "https://github.com/facebook/react.git" }
+   ]
+   ```
+2. Generate the CFR report:
+   ```
+   bun run compute-cfr -- --repos repos.json --out public/data/cfr.json
+   ```
+3. Start the app and view results:
+   ```
+   bun run dev
+   ```
+   Then open the local URL shown in the terminal (typically `http://localhost:5173`).
+
 You can also install [eslint-plugin-react-x](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-x) and [eslint-plugin-react-dom](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-dom) for React-specific lint rules:
 
 ```js

@@ -1,0 +1,14 @@
+[
+  {
+    "name": "react",
+    "url": "https://github.com/facebook/react.git"
+  },
+  {
+    "name": "vite",
+    "url": "https://github.com/vitejs/vite.git"
+  },
+  {
+    "name": "tailwindcss",
+    "url": "https://github.com/tailwindlabs/tailwindcss.git"
+  }
+]
