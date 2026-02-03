@@ -23,7 +23,7 @@ export type RepoCfrResult = {
 
 const SEMVER_PREFIX = /^v?(\d+)\.(\d+)\.(\d+)/
 
-export function parseSemverTag(tag: string, versionRegex: RegExp): ParsedTag | null {
+function parseSemverTag(tag: string, versionRegex: RegExp): ParsedTag | null {
   if (!versionRegex.test(tag)) return null
   const match = tag.match(SEMVER_PREFIX)
   if (!match) return null

@@ -1,5 +1,5 @@
 import * as React from "react"
-import { Legend, ResponsiveContainer, Tooltip, type LegendProps, type TooltipProps } from "recharts"
+import { ResponsiveContainer, Tooltip, type TooltipProps } from "recharts"
 
 import { cn } from "@/lib/utils"
 
@@ -88,8 +88,6 @@ function ChartStyle({ id, config }: { id: string; config: ChartConfig }) {
 }
 
 const ChartTooltip = Tooltip
-const ChartLegend = Legend
-
 type ChartTooltipContentProps = React.ComponentProps<"div"> &
   TooltipProps<number, string> & {
     hideLabel?: boolean
@@ -182,58 +180,9 @@ const ChartTooltipContent = React.forwardRef<HTMLDivElement, ChartTooltipContent
 )
 ChartTooltipContent.displayName = "ChartTooltipContent"
 
-type ChartLegendContentProps = React.ComponentProps<"div"> &
-  LegendProps & {
-    hideIcon?: boolean
-    nameKey?: string
-  }
-
-const ChartLegendContent = React.forwardRef<HTMLDivElement, ChartLegendContentProps>(
-  ({ className, payload, verticalAlign = "bottom", hideIcon, nameKey, ...props }, ref) => {
-    const { config } = useChart()
-
-    if (!payload?.length) {
-      return null
-    }
-
-    return (
-      <div
-        ref={ref}
-        className={cn(
-          "flex flex-wrap items-center gap-4 text-xs",
-          verticalAlign === "top" ? "pb-3" : "pt-3",
-          className,
-        )}
-        {...props}
-      >
-        {payload.map((item, index) => {
-          const key = nameKey ?? item.dataKey ?? item.value ?? `item-${index}`
-          const configItem = config[key as string]
-          const Icon = configItem?.icon
-          const color = item.color ?? `var(--color-${key})`
-
-          return (
-            <div key={`${key}-${index}`} className="flex items-center gap-1.5">
-              {hideIcon ? null : Icon ? (
-                <Icon className="size-3 text-muted-foreground" />
-              ) : (
-                <span className="size-2 rounded-full" style={{ backgroundColor: color }} />
-              )}
-              <span className="text-muted-foreground">{configItem?.label ?? item.value ?? key}</span>
-            </div>
-          )
-        })}
-      </div>
-    )
-  },
-)
-ChartLegendContent.displayName = "ChartLegendContent"
-
 export {
   ChartContainer,
   ChartTooltip,
   ChartTooltipContent,
-  ChartLegend,
-  ChartLegendContent,
   type ChartConfig,
 }

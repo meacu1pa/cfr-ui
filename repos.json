@@ -28,10 +28,6 @@
     "url": "https://github.com/tensorflow/tensorflow.git"
   },
   {
-    "name": "eslint",
-    "url": "https://github.com/eslint/eslint.git"
-  },
-  {
     "name": "rails",
     "url": "https://github.com/rails/rails.git"
   },
