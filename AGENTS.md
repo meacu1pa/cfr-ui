@@ -10,77 +10,82 @@ This file provides guidelines for agentic coding agents working in the CFR-UI Re
 
 - **Framework**: React 19.2.0 with TypeScript
 - **Build Tool**: Vite 7.2.4 with HMR
-- **CSS**: Tailwind CSS 4.1.18 (New York Shadcn/ui style)
+- **CSS**: Tailwind CSS 4.1.18 (Shadcn/ui-style utility patterns)
 - **Package Manager**: Bun (bun.lock present)
-- **UI Components**: Shadcn/ui with Radix UI primitives
-- **Icons**: Lucide React
+- **UI Components**: Local Shadcn/ui-style components + `@base-ui/react` utilities
+- **Charts**: Recharts
 
 ## Development Commands
 
 ```bash
 # Development
 bun run dev              # Start dev server with HMR
+bun run dev:up           # Recompute CFR data then start dev server
 
 # Building
 bun run build            # Production build (TypeScript + Vite)
 bun run preview          # Preview production build locally
+bun run compute-cfr      # Generate CFR report JSON
 
 # Code Quality
 bun run lint             # Run ESLint on all TypeScript files
+bun run knip             # Dead-code/unused export checks
+bun run test             # Run Vitest tests once
+bun run test:watch       # Run Vitest in watch mode
 ```
 
-**Note**: No testing framework is currently configured. Consider adding Vitest and React Testing Library.
+**Note**: Tests run with Vitest; smoke tests live in `src/smoke.test.tsx`.
 
 ## Project Structure
 
 ```
 src/
-├── components/ui/        # Shadcn/ui components
-├── lib/                 # Utilities (cn helper)
+├── components/ui/        # Local UI components
+├── lib/                 # Utilities + CFR logic
 ├── assets/              # Static assets
 ├── App.tsx             # Main application
 ├── main.tsx            # Entry point
-└── index.css           # Tailwind CSS with theme
+└── index.css           # Tailwind CSS + tw-animate
+
+scripts/
+└── compute-cfr.ts       # CFR data generator
 ```
 
 ## Import Conventions
 
 ```typescript
-// React imports first
-import { StrictMode } from 'react'
-import { createRoot } from 'react-dom/client'
+// External imports first
+import { useEffect } from "react"
+import { BarChart } from "recharts"
 
 // Internal imports with @ alias
-import { Button } from "@/components/ui/button"
+import { Card } from "@/components/ui/card"
 import { cn } from "@/lib/utils"
 
-// External libraries
-import * as React from "react"
-import { Slot } from "@radix-ui/react-slot"
+// Styles last
+import "./App.css"
 ```
 
 **Rules**:
 - Use absolute imports with `@/` alias for src files
-- Group imports: React → Internal → External
+- Group imports: External → Internal → Styles
 - Named exports for utilities, default exports for main components
 
 ## TypeScript Guidelines
 
 - **Strict mode enabled** - all files must be properly typed
-- **Interfaces over types** for object shapes
+- **Types or interfaces** are fine; be consistent within a file
 - **Generic components** when appropriate
 - **No implicit any** - always provide explicit types
 
 ```typescript
 // Good
-interface ButtonProps extends React.ComponentProps<"button"> {
-  variant?: "default" | "destructive" | "outline"
-  size?: "default" | "sm" | "lg"
-  asChild?: boolean
+type CardProps = React.ComponentProps<"div"> & {
+  tone?: "default" | "muted"
 }
 
 // Bad
-function Button(props: any) { ... }
+function Card(props: any) { /* ... */ }
 ```
 
 ## Component Development
@@ -89,7 +94,7 @@ function Button(props: any) { ... }
 
 ```typescript
 // Use class-variance-authority for variants
-const buttonVariants = cva(
+const cardVariants = cva(
   "inline-flex items-center justify-center whitespace-nowrap rounded-md text-sm font-medium ring-offset-background transition-colors",
   {
     variants: {
@@ -113,27 +118,14 @@ const buttonVariants = cva(
 ### Component Structure
 
 ```typescript
-function Button({
-  className,
-  variant = "default",
-  size = "default",
-  asChild = false,
-  ...props
-}: ButtonProps) {
-  const Comp = asChild ? Slot : "button"
-  return (
-    <Comp
-      className={cn(buttonVariants({ variant, size, className }))}
-      {...props}
-    />
-  )
+function Card({ className, ...props }: CardProps) {
+  return <div className={cn("rounded-xl border", className)} {...props} />
 }
 ```
 
 **Rules**:
-- Use functional components with arrow functions
+- Use functional components (function declarations or arrow functions)
 - Destructure props with defaults
-- Use Radix UI Slot for polymorphic components
 - Forward refs when needed
 - Use `cn()` utility for class merging
 
@@ -196,7 +188,7 @@ ESLint is configured with:
 - React refresh for HMR
 - Browser environment target
 
-**Always run `bun run lint` before committing.**
+**Always run `bun run lint`, `bun run knip`, `bun run test`, and `bun run build` before committing.**
 
 ## File Organization
 
@@ -204,7 +196,7 @@ ESLint is configured with:
 - Use `src/lib/` for utilities and helpers
 - One component per file
 - Export types/interfaces from component files
-- Use barrel exports (`index.ts`) for related modules
+- Avoid barrel exports unless they provide clear value
 
 ## Performance Considerations
 
@@ -215,11 +207,10 @@ ESLint is configured with:
 
 ## Development Workflow
 
-1. Run `bun run dev` for local development
+1. Run `bun run dev` (or `bun run dev:up`) for local development
 2. Make changes following the style guidelines
-3. Run `bun run lint` to check code quality
-4. Test components manually in the browser
-5. Build with `bun run build` to verify production readiness
+3. Run `bun run lint`, `bun run knip`, `bun run test`, `bun run build`
+4. Test components manually in the browser if the change affects UI
 
 ## Adding New Dependencies
 
@@ -228,13 +219,18 @@ ESLint is configured with:
 bun add package-name
 
 # Add dev dependency
-bun add -d package-name
+bun add -D package-name
 
 # Add Shadcn/ui component
 bun add @radix-ui/react-component-name
 ```
 
 Always check if similar functionality exists before adding new dependencies.
+
+## Automation & CI
+
+- CI runs on pull requests to `main` and executes: lint → knip → test → build.
+- Dependabot checks dependencies daily for npm and GitHub Actions.
 
 ## Dark Mode
 
