@@ -1,0 +1,42 @@
+[
+  {
+    "name": "react",
+    "url": "https://github.com/facebook/react.git"
+  },
+  {
+    "name": "vite",
+    "url": "https://github.com/vitejs/vite.git"
+  },
+  {
+    "name": "tailwindcss",
+    "url": "https://github.com/tailwindlabs/tailwindcss.git"
+  },
+  {
+    "name": "angular",
+    "url": "https://github.com/angular/angular.git"
+  },
+  {
+    "name": "kubernetes",
+    "url": "https://github.com/kubernetes/kubernetes.git"
+  },
+  {
+    "name": "node",
+    "url": "https://github.com/nodejs/node.git"
+  },
+  {
+    "name": "tensorflow",
+    "url": "https://github.com/tensorflow/tensorflow.git"
+  },
+  {
+    "name": "rails",
+    "url": "https://github.com/rails/rails.git"
+  },
+  {
+    "name": "gitlab",
+    "url": "https://gitlab.com/gitlab-org/gitlab.git"
+  },
+  {
+    "name": "gitlab-runner",
+    "url": "https://gitlab.com/gitlab-org/gitlab-runner.git"
+  }
+]

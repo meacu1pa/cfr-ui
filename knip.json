@@ -1,0 +1,18 @@
+{
+  "entry": [
+    "src/main.tsx"
+  ],
+  "project": [
+    "src/**/*.{ts,tsx}",
+    "scripts/**/*.ts"
+  ],
+  "ignore": [
+    "dist/**",
+    "public/**"
+  ],
+  "ignoreDependencies": [
+    "@base-ui/react",
+    "tailwindcss",
+    "tw-animate-css"
+  ]
+}
