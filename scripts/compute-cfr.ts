@@ -31,6 +31,12 @@ type CfrReport = {
   summary: CfrSummary
 }
 
+type BuildReportOptions = {
+  generatedAt?: string
+  versionPattern: string
+  repos: CfrRepo[]
+}
+
 const DEFAULT_VERSION_PATTERN = String.raw`^v?\d+\.\d+\.\d+(?:[-+].+)?$`
 
 type CliOptions = {
@@ -47,7 +53,7 @@ const DEFAULT_OPTIONS: CliOptions = {
   showHelp: false,
 }
 
-function parseArgs(argv: string[]): CliOptions {
+export function parseArgs(argv: string[]): CliOptions {
   const options: CliOptions = { ...DEFAULT_OPTIONS }
   for (let i = 0; i < argv.length; i += 1) {
     const arg = argv[i]
@@ -126,6 +132,31 @@ function parseTags(output: string): string[] {
     .map((ref) => ref.replace("refs/tags/", ""))
 }
 
+function rate(failed: number, total: number): number {
+  if (total <= 0) return 0
+  return Number((failed / total).toFixed(4))
+}
+
+export function buildReport(options: BuildReportOptions): CfrReport {
+  const reposForSummary = options.repos.filter((repo) => repo.error === null)
+  const summaryTotalReleases = reposForSummary.reduce((sum, repo) => sum + repo.totalReleases, 0)
+  const summaryPatchFailures = reposForSummary.reduce((sum, repo) => sum + repo.totalPatchFailures, 0)
+  const summaryTotalTags = summaryTotalReleases + summaryPatchFailures
+
+  return {
+    generatedAt: options.generatedAt ?? new Date().toISOString(),
+    failureRule: "Patch releases (x.y.z where z > 0) are failures; x.y.0 counts as a release.",
+    versionPattern: options.versionPattern,
+    repos: options.repos,
+    summary: {
+      totalRepos: reposForSummary.length,
+      totalReleases: summaryTotalReleases,
+      totalPatchFailures: summaryPatchFailures,
+      changeFailureRate: rate(summaryPatchFailures, summaryTotalTags),
+    },
+  }
+}
+
 async function main() {
   const options = parseArgs(process.argv.slice(2))
   if (options.showHelp) {
@@ -172,23 +203,10 @@ async function main() {
     })
   }
 
-  const reposForSummary = repos.filter((repo) => repo.error === null)
-  const summaryTotalReleases = reposForSummary.reduce((sum, repo) => sum + repo.totalReleases, 0)
-  const summaryPatchFailures = reposForSummary.reduce((sum, repo) => sum + repo.totalPatchFailures, 0)
-  const summaryTotalTags = summaryTotalReleases + summaryPatchFailures
-
-  const report: CfrReport = {
-    generatedAt: new Date().toISOString(),
-    failureRule: "Patch releases (x.y.z where z > 0) are failures; x.y.0 counts as a release.",
-    versionPattern: options.versionPattern,
+  const report = buildReport({
     repos,
-    summary: {
-      totalRepos: reposForSummary.length,
-      totalReleases: summaryTotalReleases,
-      totalPatchFailures: summaryPatchFailures,
-      changeFailureRate: rate(summaryPatchFailures, summaryTotalTags),
-    },
-  }
+    versionPattern: options.versionPattern,
+  })
 
   await mkdir(path.dirname(options.outPath), { recursive: true })
   await writeFile(options.outPath, JSON.stringify(report, null, 2), "utf8")
@@ -196,8 +214,10 @@ async function main() {
   console.log(`Wrote CFR report to ${options.outPath}`)
 }
 
-main().catch((error) => {
-  // eslint-disable-next-line no-console
-  console.error(error instanceof Error ? error.message : error)
-  process.exit(1)
-})
+if (import.meta.main) {
+  main().catch((error) => {
+    // eslint-disable-next-line no-console
+    console.error(error instanceof Error ? error.message : error)
+    process.exit(1)
+  })
+}

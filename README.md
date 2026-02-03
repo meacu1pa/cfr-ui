@@ -51,15 +51,17 @@ export default defineConfig([
      { "name": "react", "url": "https://github.com/facebook/react.git" }
    ]
    ```
-2. Generate the CFR report:
+2. Generate the CFR report and start the app:
    ```
-   bun run compute-cfr -- --repos repos.json --out public/data/cfr.json
-   ```
-3. Start the app and view results:
-   ```
-   bun run dev
+   bun run dev:up
    ```
    Then open the local URL shown in the terminal (typically `http://localhost:5173`).
+
+If you want to run the steps manually:
+```
+bun run compute-cfr -- --repos repos.json --out public/data/cfr.json
+bun run dev
+```
 
 ## Tests
 

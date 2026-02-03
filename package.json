@@ -5,6 +5,7 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
+    "dev:up": "bun run compute-cfr -- --repos repos.json --out public/data/cfr.json && bun run dev",
     "build": "tsc -b && vite build",
     "lint": "eslint .",
     "preview": "vite preview",
