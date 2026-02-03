@@ -1,3 +1,4 @@
 # Agent Instructions
 
-- Run the unit test suite after every change: `bun run test`.
+- Run these checks after every change: `bun run lint`, `bun run build`, `bun run test`.
+- Periodically check for dead code (unused files/components) and remove it.

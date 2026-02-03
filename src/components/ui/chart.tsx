@@ -148,10 +148,11 @@ const ChartTooltipContent = React.forwardRef<HTMLDivElement, ChartTooltipContent
         {resolvedLabel ? <div className={cn("font-medium", labelClassName)}>{resolvedLabel}</div> : null}
         <div className="grid gap-1.5">
           {payload.map((item, index) => {
-            const key = nameKey ?? item.name ?? item.dataKey ?? "value"
-            const configItem = config[key as string]
+            const key = String(nameKey ?? item.name ?? item.dataKey ?? "value")
+            const configItem = config[key]
             const indicatorColor = color ?? item.color ?? `var(--color-${key})`
-            const formattedValue = formatter ? formatter(item.value, item.name, item, index, payload) : item.value
+            const rawValue = item.value ?? 0
+            const formattedValue = formatter ? formatter(rawValue, key, item, index, payload) : rawValue
             const displayValue = Array.isArray(formattedValue) ? formattedValue[0] : formattedValue
 
             return (

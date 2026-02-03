@@ -81,7 +81,6 @@ function App() {
 
   useEffect(() => {
     let active = true
-    setLoading(true)
     fetch("/data/cfr.json", { cache: "no-store" })
       .then((response) => {
         if (!response.ok) {

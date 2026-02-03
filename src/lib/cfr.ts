@@ -57,6 +57,7 @@ export function computeReleaseCfr(tags: string[], versionRegex: RegExp): RepoCfr
 
   const releases = Array.from(groups.values())
     .filter((group) => group.releaseTag)
+    .sort((a, b) => (a.major !== b.major ? a.major - b.major : a.minor - b.minor))
     .map((group) => {
       const patchTags = group.patchTags
         .sort((a, b) => a.patch - b.patch)
@@ -70,11 +71,8 @@ export function computeReleaseCfr(tags: string[], versionRegex: RegExp): RepoCfr
         totalTags,
         failedTags,
         changeFailureRate: rate(failedTags, totalTags),
-        major: group.major,
-        minor: group.minor,
       }
     })
-    .sort((a, b) => (a.major !== b.major ? a.major - b.major : a.minor - b.minor))
 
   const totalReleases = releases.length
   const totalPatchFailures = releases.reduce((sum, release) => sum + release.failedTags, 0)
@@ -84,7 +82,7 @@ export function computeReleaseCfr(tags: string[], versionRegex: RegExp): RepoCfr
     totalReleases,
     totalPatchFailures,
     changeFailureRate: rate(totalPatchFailures, overallTotalTags),
-    releases: releases.map(({ major, minor, ...release }) => release),
+    releases,
   }
 }
 

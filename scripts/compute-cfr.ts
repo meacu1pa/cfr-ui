@@ -8,8 +8,6 @@ type RepoInput = {
   url: string
 }
 
-type CfrRelease = RepoCfrResult["releases"][number]
-
 type CfrRepo = RepoCfrResult & {
   name: string
   url: string
@@ -81,7 +79,6 @@ export function parseArgs(argv: string[]): CliOptions {
 }
 
 function printHelp() {
-  // eslint-disable-next-line no-console
   console.log(`Usage:
   bun run compute-cfr -- --repos repos.json --out public/data/cfr.json
 
@@ -210,13 +207,11 @@ async function main() {
 
   await mkdir(path.dirname(options.outPath), { recursive: true })
   await writeFile(options.outPath, JSON.stringify(report, null, 2), "utf8")
-  // eslint-disable-next-line no-console
   console.log(`Wrote CFR report to ${options.outPath}`)
 }
 
 if (import.meta.main) {
   main().catch((error) => {
-    // eslint-disable-next-line no-console
     console.error(error instanceof Error ? error.message : error)
     process.exit(1)
   })
