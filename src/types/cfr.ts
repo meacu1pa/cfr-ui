@@ -1,28 +1,32 @@
-export type CfrTag = {
-  name: string
-  isFailure: boolean
+export type CfrRelease = {
+  version: string
+  releaseTag: string
+  patchTags: string[]
+  totalTags: number
+  failedTags: number
+  changeFailureRate: number
 }
 
 export type CfrRepo = {
   name: string
   url: string
-  totalTags: number
-  failedTags: number
+  totalReleases: number
+  totalPatchFailures: number
   changeFailureRate: number
-  tags: CfrTag[]
+  releases: CfrRelease[]
   error: string | null
 }
 
 export type CfrSummary = {
   totalRepos: number
-  totalTags: number
-  failedTags: number
+  totalReleases: number
+  totalPatchFailures: number
   changeFailureRate: number
 }
 
 export type CfrReport = {
   generatedAt: string
-  failurePattern: string
+  failureRule: string
   versionPattern: string
   repos: CfrRepo[]
   summary: CfrSummary

@@ -3,7 +3,7 @@ import { Badge } from "@/components/ui/badge"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Separator } from "@/components/ui/separator"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
-import type { CfrReport, CfrRepo } from "@/types/cfr"
+import type { CfrRelease, CfrReport, CfrRepo } from "@/types/cfr"
 import { cn } from "@/lib/utils"
 import "./App.css"
 
@@ -30,9 +30,21 @@ function formatDate(iso: string) {
 
 function getRepoStatus(repo: CfrRepo) {
   if (repo.error) return { label: "Error", variant: "destructive" as const }
-  if (repo.totalTags === 0) return { label: "No tags", variant: "secondary" as const }
-  if (repo.failedTags === 0) return { label: "Healthy", variant: "secondary" as const }
-  return { label: "Needs review", variant: "default" as const }
+  if (repo.totalReleases === 0) return { label: "No releases", variant: "secondary" as const }
+  if (repo.totalPatchFailures === 0) return { label: "Healthy", variant: "secondary" as const }
+  return { label: "Patching", variant: "default" as const }
+}
+
+function getCfrTone(cfr: number) {
+  if (cfr === 0) return "bg-emerald-300/50"
+  if (cfr < 0.25) return "bg-emerald-400/80"
+  if (cfr < 0.6) return "bg-amber-400/80"
+  return "bg-rose-500/80"
+}
+
+function getLatestReleases(releases: CfrRelease[], limit = 10) {
+  const slice = releases.length <= limit ? releases : releases.slice(-limit)
+  return slice.slice().reverse()
 }
 
 function App() {
@@ -78,19 +90,19 @@ function App() {
         helper: "Repos included in summary",
       },
       {
-        label: "Version tags",
-        value: formatNumber(report.summary.totalTags),
-        helper: "Semver-style tags",
+        label: "Major/minor releases",
+        value: formatNumber(report.summary.totalReleases),
+        helper: "Tags ending in .0",
       },
       {
-        label: "Failed tags",
-        value: formatNumber(report.summary.failedTags),
-        helper: "Rollback, revert, hotfix, fix",
+        label: "Patch failures",
+        value: formatNumber(report.summary.totalPatchFailures),
+        helper: "Patch tags counted as failures",
       },
       {
         label: "Change failure rate",
         value: formatPercent(report.summary.changeFailureRate),
-        helper: "Failed tags / total tags",
+        helper: "Patch failures / (releases + patch failures)",
       },
     ]
   }, [report])
@@ -110,16 +122,14 @@ function App() {
           </p>
           <h1 className="text-4xl font-semibold text-foreground sm:text-5xl">Change Failure Rate</h1>
           <p className="max-w-2xl text-base text-muted-foreground">
-            Pulls release tags straight from git, flags rollback-like releases, and summarizes the failure
-            rate across repos. Generate new data with{" "}
+            Pulls release tags straight from git, treats patch releases as failures, and summarizes the
+            change failure rate across repos. Generate new data with{" "}
             <span className="font-mono text-foreground">bun run compute-cfr</span>.
           </p>
           <div className="flex flex-wrap items-center gap-3 text-sm text-muted-foreground">
-            <span>Failure tags:</span>
-            <Badge variant="outline">rollback</Badge>
-            <Badge variant="outline">revert</Badge>
-            <Badge variant="outline">hotfix</Badge>
-            <Badge variant="outline">fix</Badge>
+            <span>Rule:</span>
+            <Badge variant="outline">x.y.0 = release</Badge>
+            <Badge variant="outline">x.y.z (z &gt; 0) = failure</Badge>
           </div>
         </header>
 
@@ -150,14 +160,14 @@ function App() {
             <CardContent className="p-0">
               <Table>
                 <TableHeader>
-                  <TableRow>
-                    <TableHead>Repository</TableHead>
-                    <TableHead>Status</TableHead>
-                    <TableHead className="text-right">Tags</TableHead>
-                    <TableHead className="text-right">Failed</TableHead>
-                    <TableHead className="text-right">CFR</TableHead>
-                  </TableRow>
-                </TableHeader>
+                    <TableRow>
+                      <TableHead>Repository</TableHead>
+                      <TableHead>Status</TableHead>
+                      <TableHead className="text-right">Releases</TableHead>
+                      <TableHead className="text-right">Patch failures</TableHead>
+                      <TableHead className="text-right">CFR</TableHead>
+                    </TableRow>
+                  </TableHeader>
                 <TableBody>
                   {loading && (
                     <TableRow>
@@ -200,8 +210,8 @@ function App() {
                           <TableCell>
                             <Badge variant={status.variant}>{status.label}</Badge>
                           </TableCell>
-                          <TableCell className="text-right">{formatNumber(repo.totalTags)}</TableCell>
-                          <TableCell className="text-right">{formatNumber(repo.failedTags)}</TableCell>
+                          <TableCell className="text-right">{formatNumber(repo.totalReleases)}</TableCell>
+                          <TableCell className="text-right">{formatNumber(repo.totalPatchFailures)}</TableCell>
                           <TableCell className="text-right font-semibold">
                             {formatPercent(repo.changeFailureRate)}
                           </TableCell>
@@ -226,27 +236,56 @@ function App() {
                 <Card key={`${repo.url}-signals`} className="bg-card/80 backdrop-blur">
                   <CardHeader className="space-y-1">
                     <CardTitle className="text-lg">{repo.name}</CardTitle>
-                    <CardDescription>{repo.error ?? "Latest version tags flagged below."}</CardDescription>
+                    <CardDescription>
+                      {repo.error ?? "CFR history by major/minor release (latest on the right)."}
+                    </CardDescription>
                   </CardHeader>
                   <CardContent className="space-y-3">
                     {repo.error ? (
                       <Badge variant="destructive">{repo.error}</Badge>
-                    ) : repo.tags.length === 0 ? (
-                      <p className="text-sm text-muted-foreground">No semver tags found.</p>
+                    ) : repo.releases.length === 0 ? (
+                      <p className="text-sm text-muted-foreground">No major/minor releases found.</p>
                     ) : (
-                      <div className="flex flex-wrap gap-2">
-                        {repo.tags.slice(0, 10).map((tag) => (
-                          <Badge
-                            key={tag.name}
-                            variant={tag.isFailure ? "destructive" : "secondary"}
-                            className={cn("text-xs", tag.isFailure && "shadow-sm")}
-                          >
-                            {tag.name}
-                          </Badge>
-                        ))}
-                        {repo.tags.length > 10 && (
-                          <Badge variant="outline">+{repo.tags.length - 10} more</Badge>
-                        )}
+                      <div className="space-y-4">
+                        <div className="h-20 overflow-x-auto">
+                          <div className="flex h-full items-end gap-1">
+                            {repo.releases.map((release) => {
+                              const height = Math.max(8, Math.round(release.changeFailureRate * 100))
+                              return (
+                                <div
+                                  key={`${repo.url}-${release.version}`}
+                                  className={cn("w-2 rounded-sm", getCfrTone(release.changeFailureRate))}
+                                  style={{ height: `${height}%` }}
+                                  title={`${release.releaseTag}: ${formatPercent(release.changeFailureRate)}`}
+                                />
+                              )
+                            })}
+                          </div>
+                        </div>
+                        <div className="space-y-2">
+                          {getLatestReleases(repo.releases).map((release) => (
+                            <div
+                              key={`${repo.url}-${release.releaseTag}-summary`}
+                              className="flex items-center justify-between gap-4 rounded-lg border border-border/60 px-3 py-2"
+                            >
+                              <div className="flex flex-col">
+                                <span className="text-sm font-semibold">{release.releaseTag}</span>
+                                <span className="text-xs text-muted-foreground">
+                                  {release.failedTags} patch{release.failedTags === 1 ? "" : "es"} · total{" "}
+                                  {release.totalTags} tag{release.totalTags === 1 ? "" : "s"}
+                                </span>
+                              </div>
+                              <Badge variant={release.failedTags > 0 ? "default" : "secondary"}>
+                                {formatPercent(release.changeFailureRate)}
+                              </Badge>
+                            </div>
+                          ))}
+                          {repo.releases.length > 10 && (
+                            <p className="text-xs text-muted-foreground">
+                              Showing latest 10 releases of {repo.releases.length}.
+                            </p>
+                          )}
+                        </div>
                       </div>
                     )}
                   </CardContent>

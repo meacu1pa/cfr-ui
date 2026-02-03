@@ -1,48 +1,41 @@
 import { mkdir, readFile, writeFile } from "node:fs/promises"
 import path from "node:path"
+import type { RepoCfrResult } from "@/lib/cfr"
+import { computeReleaseCfr } from "@/lib/cfr"
 
 type RepoInput = {
   name?: string
   url: string
 }
 
-type CfrTag = {
-  name: string
-  isFailure: boolean
-}
+type CfrRelease = RepoCfrResult["releases"][number]
 
-type CfrRepo = {
+type CfrRepo = RepoCfrResult & {
   name: string
   url: string
-  totalTags: number
-  failedTags: number
-  changeFailureRate: number
-  tags: CfrTag[]
   error: string | null
 }
 
 type CfrSummary = {
   totalRepos: number
-  totalTags: number
-  failedTags: number
+  totalReleases: number
+  totalPatchFailures: number
   changeFailureRate: number
 }
 
 type CfrReport = {
   generatedAt: string
-  failurePattern: string
+  failureRule: string
   versionPattern: string
   repos: CfrRepo[]
   summary: CfrSummary
 }
 
-const DEFAULT_FAILURE_PATTERN = String.raw`(?:^|[-_])(rollback|revert|hotfix|fix)(?:$|[-_])`
 const DEFAULT_VERSION_PATTERN = String.raw`^v?\d+\.\d+\.\d+(?:[-+].+)?$`
 
 type CliOptions = {
   reposPath: string
   outPath: string
-  failurePattern: string
   versionPattern: string
   showHelp: boolean
 }
@@ -50,7 +43,6 @@ type CliOptions = {
 const DEFAULT_OPTIONS: CliOptions = {
   reposPath: "repos.json",
   outPath: "public/data/cfr.json",
-  failurePattern: DEFAULT_FAILURE_PATTERN,
   versionPattern: DEFAULT_VERSION_PATTERN,
   showHelp: false,
 }
@@ -73,11 +65,6 @@ function parseArgs(argv: string[]): CliOptions {
       i += 1
       continue
     }
-    if (arg === "--failure-pattern" && argv[i + 1]) {
-      options.failurePattern = argv[i + 1]
-      i += 1
-      continue
-    }
     if (arg === "--version-pattern" && argv[i + 1]) {
       options.versionPattern = argv[i + 1]
       i += 1
@@ -95,7 +82,6 @@ function printHelp() {
 Options:
   --repos <path>            Path to repos.json (default: repos.json)
   --out <path>              Output JSON path (default: public/data/cfr.json)
-  --failure-pattern <regex> Override failure tag regex
   --version-pattern <regex> Override version tag regex
   -h, --help                Show this help
 `)
@@ -140,11 +126,6 @@ function parseTags(output: string): string[] {
     .map((ref) => ref.replace("refs/tags/", ""))
 }
 
-function rate(failed: number, total: number): number {
-  if (total <= 0) return 0
-  return Number((failed / total).toFixed(4))
-}
-
 async function main() {
   const options = parseArgs(process.argv.slice(2))
   if (options.showHelp) {
@@ -155,7 +136,6 @@ async function main() {
   const reposRaw = await readFile(options.reposPath, "utf8")
   const reposInput: RepoInput[] = JSON.parse(reposRaw)
 
-  const failureRegex = new RegExp(options.failurePattern, "i")
   const versionRegex = new RegExp(options.versionPattern)
 
   const repos: CfrRepo[] = []
@@ -169,48 +149,44 @@ async function main() {
       repos.push({
         name,
         url: repo.url,
-        totalTags: 0,
-        failedTags: 0,
+        totalReleases: 0,
+        totalPatchFailures: 0,
         changeFailureRate: 0,
-        tags: [],
+        releases: [],
         error,
       })
       continue
     }
 
-    const allTags = parseTags(output).filter((tag) => versionRegex.test(tag))
-    const tags: CfrTag[] = allTags.map((tag) => ({
-      name: tag,
-      isFailure: failureRegex.test(tag),
-    }))
-    const failedTags = tags.filter((tag) => tag.isFailure).length
-    const totalTags = tags.length
+    const tags = parseTags(output)
+    const repoResult = computeReleaseCfr(tags, versionRegex)
 
     repos.push({
       name,
       url: repo.url,
-      totalTags,
-      failedTags,
-      changeFailureRate: rate(failedTags, totalTags),
-      tags,
+      totalReleases: repoResult.totalReleases,
+      totalPatchFailures: repoResult.totalPatchFailures,
+      changeFailureRate: repoResult.changeFailureRate,
+      releases: repoResult.releases,
       error: null,
     })
   }
 
   const reposForSummary = repos.filter((repo) => repo.error === null)
-  const summaryTotalTags = reposForSummary.reduce((sum, repo) => sum + repo.totalTags, 0)
-  const summaryFailedTags = reposForSummary.reduce((sum, repo) => sum + repo.failedTags, 0)
+  const summaryTotalReleases = reposForSummary.reduce((sum, repo) => sum + repo.totalReleases, 0)
+  const summaryPatchFailures = reposForSummary.reduce((sum, repo) => sum + repo.totalPatchFailures, 0)
+  const summaryTotalTags = summaryTotalReleases + summaryPatchFailures
 
   const report: CfrReport = {
     generatedAt: new Date().toISOString(),
-    failurePattern: options.failurePattern,
+    failureRule: "Patch releases (x.y.z where z > 0) are failures; x.y.0 counts as a release.",
     versionPattern: options.versionPattern,
     repos,
     summary: {
       totalRepos: reposForSummary.length,
-      totalTags: summaryTotalTags,
-      failedTags: summaryFailedTags,
-      changeFailureRate: rate(summaryFailedTags, summaryTotalTags),
+      totalReleases: summaryTotalReleases,
+      totalPatchFailures: summaryPatchFailures,
+      changeFailureRate: rate(summaryPatchFailures, summaryTotalTags),
     },
   }
 
