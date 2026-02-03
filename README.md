@@ -1,4 +1,31 @@
-# React + TypeScript + Vite
+# Change Failure Rate UI
+
+Change Failure Rate (CFR) is one of the four key DORA metrics (also known as the "Four Keys") used to measure the performance of software development teams. While metrics like Deployment Frequency measure velocity (speed), Change Failure Rate specifically measures stability (quality). It is the percentage of deployments to production that result in a failure - such as a bug, service degradation, or system outage that requires immediate remediation (e.g. a rollback, hotfix or patch).
+
+## Mapping SemVer to "Failure"
+
+In a standard SemVer scheme (Major.Minor.Patch), you can distinguish between planned feature work and reactive fixes. To calculate CFR, you need to identify which deployments were "failures."
+
+- Total Deployments: Every unique version tag pushed to production (e.g., v1.0.0, v1.1.0, v1.1.1)
+- Failed Deployments: Generally, Patch releases (x.x.1, x.x.2) that are released shortly after a Major or Minor release to fix a bug
+
+> Note: Not every patch is a "failure" (some are scheduled maintenance), but in a DORA context, any "hotfix" or "unplanned remediation" is a failure.
+
+### Tagging Strategy
+
+Ensure your team uses a consistent tagging pattern. For example:
+
+- v1.2.0: A new feature (Minor).
+- v1.2.1: A hotfix for a bug found in v1.2.0 (Patch).
+
+| Version | Type | Status | Counted As... |
+| :--- | :--- | :--- | :--- |
+| `v2.1.0` | Minor | Success | Total Deployment |
+| `v2.1.1` | Patch | **Failure** | Failed Deployment (Hotfix) |
+| `v2.2.0` | Minor | Success | Total Deployment |
+| **Result** | | **33% CFR** | (1 failure / 3 total) |
+
+## Tech Stack: React + TypeScript + Vite + shadcn/ui
 
 This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
 
@@ -7,11 +34,11 @@ Currently, two official plugins are available:
 - [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Babel](https://babeljs.io/) (or [oxc](https://oxc.rs) when used in [rolldown-vite](https://vite.dev/guide/rolldown)) for Fast Refresh
 - [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
 
-## React Compiler
+### React Compiler
 
 The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
 
-## Expanding the ESLint configuration
+### Expanding the ESLint configuration
 
 If you are developing a production application, we recommend updating the configuration to enable type-aware lint rules:
 
