@@ -1,10 +1,11 @@
 import { useEffect, useMemo, useState } from "react"
 import { Badge } from "@/components/ui/badge"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
+import { ChartContainer, ChartTooltip, ChartTooltipContent, type ChartConfig } from "@/components/ui/chart"
 import { Separator } from "@/components/ui/separator"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import type { CfrRelease, CfrReport, CfrRepo } from "@/types/cfr"
-import { cn } from "@/lib/utils"
+import { Bar, BarChart, CartesianGrid, Cell, XAxis, YAxis } from "recharts"
 import "./App.css"
 
 const percentFormat = new Intl.NumberFormat("en-US", {
@@ -28,18 +29,44 @@ function formatDate(iso: string) {
   return date.toLocaleString()
 }
 
+const chartConfig = {
+  cfr: {
+    label: "CFR",
+  },
+} satisfies ChartConfig
+
+type CfrBand = "elite" | "medium" | "low"
+
+const CFR_BADGE_STYLES: Record<CfrBand, string> = {
+  elite: "border-emerald-200/80 bg-emerald-500/15 text-emerald-700 dark:border-emerald-500/40 dark:text-emerald-200",
+  medium: "border-sky-200/80 bg-sky-500/15 text-sky-700 dark:border-sky-500/40 dark:text-sky-200",
+  low: "border-rose-200/80 bg-rose-500/15 text-rose-700 dark:border-rose-500/40 dark:text-rose-200",
+}
+
+const CFR_TEXT_STYLES: Record<CfrBand, string> = {
+  elite: "text-emerald-600 dark:text-emerald-300",
+  medium: "text-sky-600 dark:text-sky-300",
+  low: "text-rose-600 dark:text-rose-300",
+}
+
+function getCfrBand(cfr: number): CfrBand {
+  if (cfr <= 0.15) return "elite"
+  if (cfr <= 0.45) return "medium"
+  return "low"
+}
+
+function getCfrBarColor(cfr: number) {
+  const band = getCfrBand(cfr)
+  if (band === "elite") return "var(--cfr-elite)"
+  if (band === "medium") return "var(--cfr-medium)"
+  return "var(--cfr-low)"
+}
+
 function getRepoStatus(repo: CfrRepo) {
   if (repo.error) return { label: "Error", variant: "destructive" as const }
   if (repo.totalReleases === 0) return { label: "No releases", variant: "secondary" as const }
   if (repo.totalPatchFailures === 0) return { label: "Healthy", variant: "secondary" as const }
   return { label: "Patching", variant: "default" as const }
-}
-
-function getCfrTone(cfr: number) {
-  if (cfr === 0) return "bg-emerald-300/50"
-  if (cfr < 0.25) return "bg-emerald-400/80"
-  if (cfr < 0.6) return "bg-amber-400/80"
-  return "bg-rose-500/80"
 }
 
 function getLatestReleases(releases: CfrRelease[], limit = 10) {
@@ -212,7 +239,9 @@ function App() {
                           </TableCell>
                           <TableCell className="text-right">{formatNumber(repo.totalReleases)}</TableCell>
                           <TableCell className="text-right">{formatNumber(repo.totalPatchFailures)}</TableCell>
-                          <TableCell className="text-right font-semibold">
+                          <TableCell
+                            className={`text-right font-semibold ${CFR_TEXT_STYLES[getCfrBand(repo.changeFailureRate)]}`}
+                          >
                             {formatPercent(repo.changeFailureRate)}
                           </TableCell>
                         </TableRow>
@@ -232,65 +261,79 @@ function App() {
               <Separator className="flex-1" />
             </div>
             <div className="grid gap-4 md:grid-cols-2">
-              {report.repos.map((repo) => (
-                <Card key={`${repo.url}-signals`} className="bg-card/80 backdrop-blur">
-                  <CardHeader className="space-y-1">
-                    <CardTitle className="text-lg">{repo.name}</CardTitle>
-                    <CardDescription>
-                      {repo.error ?? "CFR history by major/minor release (latest on the right)."}
-                    </CardDescription>
-                  </CardHeader>
-                  <CardContent className="space-y-3">
-                    {repo.error ? (
-                      <Badge variant="destructive">{repo.error}</Badge>
-                    ) : repo.releases.length === 0 ? (
-                      <p className="text-sm text-muted-foreground">No major/minor releases found.</p>
-                    ) : (
-                      <div className="space-y-4">
-                        <div className="h-20 overflow-x-auto">
-                          <div className="flex h-full items-end gap-1">
-                            {repo.releases.map((release) => {
-                              const height = Math.max(8, Math.round(release.changeFailureRate * 100))
-                              return (
-                                <div
-                                  key={`${repo.url}-${release.version}`}
-                                  className={cn("w-2 rounded-sm", getCfrTone(release.changeFailureRate))}
-                                  style={{ height: `${height}%` }}
-                                  title={`${release.releaseTag}: ${formatPercent(release.changeFailureRate)}`}
-                                />
-                              )
-                            })}
-                          </div>
-                        </div>
-                        <div className="space-y-2">
-                          {getLatestReleases(repo.releases).map((release) => (
-                            <div
-                              key={`${repo.url}-${release.releaseTag}-summary`}
-                              className="flex items-center justify-between gap-4 rounded-lg border border-border/60 px-3 py-2"
-                            >
-                              <div className="flex flex-col">
-                                <span className="text-sm font-semibold">{release.releaseTag}</span>
-                                <span className="text-xs text-muted-foreground">
-                                  {release.failedTags} patch{release.failedTags === 1 ? "" : "es"} · total{" "}
-                                  {release.totalTags} tag{release.totalTags === 1 ? "" : "s"}
-                                </span>
+                  {report.repos.map((repo) => {
+                    const latestReleases = getLatestReleases(repo.releases)
+                    const chartReleases = latestReleases.slice().reverse()
+                    const chartData = chartReleases.map((release) => ({
+                      release: release.releaseTag,
+                      cfr: release.changeFailureRate,
+                    }))
+
+                    return (
+                      <Card key={`${repo.url}-signals`} className="bg-card/80 backdrop-blur">
+                        <CardHeader className="space-y-1">
+                          <CardTitle className="text-lg">{repo.name}</CardTitle>
+                          <CardDescription>
+                            {repo.error ?? "CFR history by major/minor release (latest on the right)."}
+                          </CardDescription>
+                        </CardHeader>
+                        <CardContent className="space-y-3">
+                          {repo.error ? (
+                            <Badge variant="destructive">{repo.error}</Badge>
+                          ) : repo.releases.length === 0 ? (
+                            <p className="text-sm text-muted-foreground">No major/minor releases found.</p>
+                          ) : (
+                            <div className="space-y-4">
+                              <ChartContainer config={chartConfig} className="h-24 w-full">
+                                <BarChart data={chartData} margin={{ left: 0, right: 0, top: 6, bottom: 0 }}>
+                                  <CartesianGrid vertical={false} />
+                                  <XAxis dataKey="release" hide />
+                                  <YAxis domain={[0, 1]} hide />
+                                  <ChartTooltip
+                                    cursor={false}
+                                    content={<ChartTooltipContent />}
+                                    formatter={(value) => formatPercent(Number(value))}
+                                  />
+                                  <Bar dataKey="cfr" radius={[4, 4, 0, 0]} maxBarSize={14}>
+                                    {chartData.map((entry) => (
+                                      <Cell key={entry.release} fill={getCfrBarColor(entry.cfr)} />
+                                    ))}
+                                  </Bar>
+                                </BarChart>
+                              </ChartContainer>
+                              <div className="space-y-2">
+                                {latestReleases.map((release) => (
+                                  <div
+                                    key={`${repo.url}-${release.releaseTag}-summary`}
+                                    className="flex items-center justify-between gap-4 rounded-lg border border-border/60 px-3 py-2"
+                                  >
+                                    <div className="flex flex-col">
+                                      <span className="text-sm font-semibold">{release.releaseTag}</span>
+                                      <span className="text-xs text-muted-foreground">
+                                        {release.failedTags} patch{release.failedTags === 1 ? "" : "es"} · total{" "}
+                                        {release.totalTags} tag{release.totalTags === 1 ? "" : "s"}
+                                      </span>
+                                    </div>
+                                    <Badge
+                                      variant="secondary"
+                                      className={`border ${CFR_BADGE_STYLES[getCfrBand(release.changeFailureRate)]}`}
+                                    >
+                                      {formatPercent(release.changeFailureRate)}
+                                    </Badge>
+                                  </div>
+                                ))}
+                                {repo.releases.length > 10 && (
+                                  <p className="text-xs text-muted-foreground">
+                                    Showing latest 10 releases of {repo.releases.length}.
+                                  </p>
+                                )}
                               </div>
-                              <Badge variant={release.failedTags > 0 ? "default" : "secondary"}>
-                                {formatPercent(release.changeFailureRate)}
-                              </Badge>
                             </div>
-                          ))}
-                          {repo.releases.length > 10 && (
-                            <p className="text-xs text-muted-foreground">
-                              Showing latest 10 releases of {repo.releases.length}.
-                            </p>
                           )}
-                        </div>
-                      </div>
-                    )}
-                  </CardContent>
-                </Card>
-              ))}
+                        </CardContent>
+                      </Card>
+                    )
+                  })}
             </div>
           </section>
         )}

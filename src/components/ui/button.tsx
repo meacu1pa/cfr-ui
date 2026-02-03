@@ -1,5 +1,5 @@
-import * as React from "react"
-import { Slot } from "@radix-ui/react-slot"
+import { mergeProps } from "@base-ui/react/merge-props"
+import { useRender } from "@base-ui/react/use-render"
 import { cva, type VariantProps } from "class-variance-authority"
 
 import { cn } from "@/lib/utils"
@@ -38,27 +38,32 @@ const buttonVariants = cva(
   }
 )
 
+type ButtonProps = useRender.ComponentProps<"button"> &
+  VariantProps<typeof buttonVariants> & {
+    nativeButton?: boolean
+  }
+
 function Button({
   className,
   variant = "default",
   size = "default",
-  asChild = false,
+  nativeButton = true,
+  render,
   ...props
-}: React.ComponentProps<"button"> &
-  VariantProps<typeof buttonVariants> & {
-    asChild?: boolean
-  }) {
-  const Comp = asChild ? Slot : "button"
+}: ButtonProps) {
+  const defaultProps: useRender.ElementProps<"button"> = {
+    "data-slot": "button",
+    "data-variant": variant,
+    "data-size": size,
+    className: cn(buttonVariants({ variant, size, className })),
+    type: nativeButton ? "button" : undefined,
+  }
 
-  return (
-    <Comp
-      data-slot="button"
-      data-variant={variant}
-      data-size={size}
-      className={cn(buttonVariants({ variant, size, className }))}
-      {...props}
-    />
-  )
+  return useRender({
+    defaultTagName: "button",
+    render,
+    props: mergeProps<"button">(defaultProps, props),
+  })
 }
 
 export { Button, buttonVariants }
