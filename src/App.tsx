@@ -266,6 +266,7 @@ function App() {
                     const chartData = chartReleases.map((release) => ({
                       release: release.releaseTag,
                       cfr: release.changeFailureRate,
+                      fill: getCfrBarColor(release.changeFailureRate),
                     }))
 
                     return (
@@ -290,12 +291,20 @@ function App() {
                                   <YAxis domain={[0, 1]} hide />
                                   <ChartTooltip
                                     cursor={false}
-                                    content={<ChartTooltipContent />}
-                                    formatter={(value) => formatPercent(Number(value))}
+                                    content={
+                                      <ChartTooltipContent
+                                        hideLabel
+                                        formatter={(value, _name, item) => {
+                                          const percent = formatPercent(Number(value))
+                                          const release = item?.payload?.release as string | undefined
+                                          return release ? `${release} · ${percent}` : percent
+                                        }}
+                                      />
+                                    }
                                   />
                                   <Bar dataKey="cfr" radius={[4, 4, 0, 0]} maxBarSize={14}>
                                     {chartData.map((entry) => (
-                                      <Cell key={entry.release} fill={getCfrBarColor(entry.cfr)} />
+                                      <Cell key={entry.release} fill={entry.fill} />
                                     ))}
                                   </Bar>
                                 </BarChart>

@@ -148,7 +148,12 @@ const ChartTooltipContent = React.forwardRef<HTMLDivElement, ChartTooltipContent
           {payload.map((item, index) => {
             const key = String(nameKey ?? item.name ?? item.dataKey ?? "value")
             const configItem = config[key]
-            const indicatorColor = color ?? item.color ?? `var(--color-${key})`
+            const payloadColor =
+              item.payload && typeof item.payload === "object"
+                ? ((item.payload as { fill?: string; color?: string }).fill ??
+                    (item.payload as { color?: string }).color)
+                : undefined
+            const indicatorColor = color ?? item.color ?? payloadColor ?? `var(--color-${key})`
             const rawValue = item.value ?? 0
             const formattedValue = formatter ? formatter(rawValue, key, item, index, payload) : rawValue
             const displayValue = Array.isArray(formattedValue) ? formattedValue[0] : formattedValue
