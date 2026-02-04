@@ -235,6 +235,53 @@ Always check if similar functionality exists before adding new dependencies.
 ## Dark Mode
 
 Dark mode is configured with class-based strategy:
-- Add `.dark` class to `<html>` element
+- Add `.dark` class to `<html>` element (handled by ThemeProvider)
 - Use Tailwind's `dark:` prefix for dark-specific styles
 - Theme variables are available via CSS custom properties
+- System preference detection via `prefers-color-scheme` media query
+- User preference persisted in localStorage
+
+### Theme Components
+
+- `ThemeProvider` - Context provider for theme state (light/dark)
+- `ThemeToggle` - Button to toggle between themes
+- `useTheme` - Hook to access theme state and controls
+
+## Testing
+
+### Test Configuration
+
+- **Unit tests**: Use jsdom environment (configured in `vitest.config.ts`)
+- **Smoke tests**: Use node environment (configured in `vitest.smoke.config.ts`)
+- **Setup**: Mock localStorage and matchMedia in `src/test-setup.ts`
+
+### Running Tests
+
+```bash
+bun run test        # Run all tests (unit + smoke)
+bun run test:unit   # Run unit tests only
+bun run test:smoke  # Run smoke tests only
+bun run test:watch  # Run tests in watch mode
+```
+
+### Component Testing
+
+Use `@testing-library/react` for component tests:
+
+```typescript
+import { render, screen, fireEvent, waitFor } from "@testing-library/react"
+import { ThemeProvider } from "@/components/ui/theme-provider"
+import { MyComponent } from "./my-component"
+
+it("renders correctly", async () => {
+  render(
+    <ThemeProvider>
+      <MyComponent />
+    </ThemeProvider>
+  )
+  
+  await waitFor(() => {
+    expect(screen.getByText("Hello")).toBeInTheDocument()
+  })
+})
+```
