@@ -1,5 +1,11 @@
 import * as React from "react"
-import { ResponsiveContainer, Tooltip, type TooltipProps } from "recharts"
+import {
+  ResponsiveContainer,
+  Tooltip,
+  type TooltipContentProps,
+  type TooltipPayloadEntry,
+  type TooltipProps,
+} from "recharts"
 
 import { cn } from "@/lib/utils"
 
@@ -90,6 +96,9 @@ function ChartStyle({ id, config }: { id: string; config: ChartConfig }) {
 const ChartTooltip = Tooltip
 type ChartTooltipContentProps = React.ComponentProps<"div"> &
   TooltipProps<number, string> & {
+    active?: boolean
+    payload?: ReadonlyArray<TooltipPayloadEntry<number, string>>
+    label?: TooltipContentProps<number, string>["label"]
     hideLabel?: boolean
     hideIndicator?: boolean
     indicator?: "dot" | "line" | "dashed"
@@ -119,7 +128,7 @@ const ChartTooltipContent = React.forwardRef<HTMLDivElement, ChartTooltipContent
   ) => {
     const { config } = useChart()
 
-    if (!active || !payload?.length) {
+    if (!active || !payload || payload.length === 0) {
       return null
     }
 
