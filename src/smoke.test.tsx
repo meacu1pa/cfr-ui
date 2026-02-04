@@ -6,10 +6,15 @@ import os from "node:os"
 import path from "node:path"
 import { fileURLToPath } from "node:url"
 import App from "@/App"
+import { ThemeProvider } from "@/components/ui/theme-provider"
 
 describe("smoke", () => {
   it("renders the app shell", () => {
-    const html = renderToString(<App />)
+    const html = renderToString(
+      <ThemeProvider>
+        <App />
+      </ThemeProvider>
+    )
 
     expect(html).toContain("Change Failure Rate")
     expect(html).toContain("Git tag telemetry")
