@@ -44,11 +44,14 @@ export function getCfrBand(cfr: number): CfrBand {
   return "low"
 }
 
-export function getRepoStatus(repo: CfrRepo) {
-  if (repo.error) return { label: "Error", variant: "destructive" as const }
-  if (repo.totalReleases === 0) return { label: "No releases", variant: "secondary" as const }
-  if (repo.totalPatchFailures === 0) return { label: "Healthy", variant: "secondary" as const }
-  return { label: "Patching", variant: "default" as const }
+export function getRepoSignalId(repo: Pick<CfrRepo, "name" | "url">) {
+  const source = repo.url?.trim() || repo.name.trim()
+  const slug = source
+    .toLowerCase()
+    .replace(/^https?:\/\//, "")
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/^-+|-+$/g, "")
+  return `signal-${slug || "repo"}`
 }
 
 export function getLatestReleases(releases: CfrRelease[], limit = 10) {

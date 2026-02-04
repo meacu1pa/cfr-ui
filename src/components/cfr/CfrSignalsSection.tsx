@@ -6,7 +6,7 @@ import { Badge } from "@/components/ui/badge"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { ChartContainer, ChartTooltip, ChartTooltipContent } from "@/components/ui/chart"
 import { Separator } from "@/components/ui/separator"
-import { CFR_BADGE_STYLES, CFR_BENCHMARKS, chartConfig, getCfrBand, getLatestReleases } from "@/lib/cfr-ui"
+import { CFR_BADGE_STYLES, CFR_BENCHMARKS, chartConfig, getCfrBand, getLatestReleases, getRepoSignalId } from "@/lib/cfr-ui"
 import { formatPercent } from "@/lib/format"
 import type { CfrRepo } from "@/types/cfr"
 
@@ -19,6 +19,8 @@ export function CfrSignalsSection({ repos }: CfrSignalsSectionProps) {
 
   if (repos.length === 0) return null
 
+  const sortedRepos = repos.slice().sort((a, b) => a.name.localeCompare(b.name))
+
   return (
     <section className="space-y-6">
       <div className="flex items-center gap-3">
@@ -27,15 +29,16 @@ export function CfrSignalsSection({ repos }: CfrSignalsSectionProps) {
         <Separator className="flex-1" />
       </div>
       <div className="grid gap-4 md:grid-cols-2">
-        {repos.map((repo) => {
+        {sortedRepos.map((repo) => {
           const latestReleases = getLatestReleases(repo.releases)
           const chartReleases = latestReleases.slice().reverse()
           const chartData = chartReleases.map((release) => ({
             release: release.releaseTag,
             cfr: release.changeFailureRate,
           }))
+          const signalId = getRepoSignalId(repo)
           return (
-            <Card key={`${repo.url}-signals`}>
+            <Card key={`${repo.url}-signals`} id={signalId} className="scroll-mt-24">
               <CardHeader className="space-y-1">
                 <CardTitle className="text-lg">{repo.name}</CardTitle>
                 <CardDescription>

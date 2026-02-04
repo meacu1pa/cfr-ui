@@ -2,6 +2,7 @@ import { CfrRepoSection } from "@/components/cfr/CfrRepoSection"
 import { CfrSignalsSection } from "@/components/cfr/CfrSignalsSection"
 import { CfrSummaryCards } from "@/components/cfr/CfrSummaryCards"
 import { CfrTrendSection } from "@/components/cfr/CfrTrendSection"
+import { BackToTop } from "@/components/ui/back-to-top"
 import { Badge } from "@/components/ui/badge"
 import { ThemeToggle } from "@/components/ui/theme-toggle"
 import { useCfrReport } from "@/lib/use-cfr-report"
@@ -43,6 +44,7 @@ function App() {
 
         {!loading && report && report.repos.length > 0 && <CfrSignalsSection repos={report.repos} />}
       </div>
+      <BackToTop />
     </div>
   )
 }
