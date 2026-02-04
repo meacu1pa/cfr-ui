@@ -1,4 +1,6 @@
 import { useEffect, useMemo, useState } from "react"
+import { Collapsible } from "@base-ui/react"
+import { ChevronDown } from "lucide-react"
 import { Badge } from "@/components/ui/badge"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { ChartContainer, ChartTooltip, ChartTooltipContent, type ChartConfig } from "@/components/ui/chart"
@@ -78,6 +80,7 @@ function App() {
   const [report, setReport] = useState<CfrReport | null>(null)
   const [error, setError] = useState<string | null>(null)
   const [loading, setLoading] = useState(true)
+  const [expandedRelease, setExpandedRelease] = useState<string | null>(null)
 
   useEffect(() => {
     let active = true
@@ -310,26 +313,54 @@ function App() {
                                 </BarChart>
                               </ChartContainer>
                               <div className="space-y-2">
-                                {latestReleases.map((release) => (
-                                  <div
-                                    key={`${repo.url}-${release.releaseTag}-summary`}
-                                    className="flex items-center justify-between gap-4 rounded-lg border border-border/60 px-3 py-2"
-                                  >
-                                    <div className="flex flex-col">
-                                      <span className="text-sm font-semibold">{release.releaseTag}</span>
-                                      <span className="text-xs text-muted-foreground">
-                                        {release.failedTags} patch{release.failedTags === 1 ? "" : "es"} · total{" "}
-                                        {release.totalTags} tag{release.totalTags === 1 ? "" : "s"}
-                                      </span>
-                                    </div>
-                                    <Badge
-                                      variant="secondary"
-                                      className={`border ${CFR_BADGE_STYLES[getCfrBand(release.changeFailureRate)]}`}
+                                {latestReleases.map((release) => {
+                                  const releaseKey = `${repo.url}-${release.releaseTag}`
+                                  const isExpanded = expandedRelease === releaseKey
+                                  return (
+                                    <Collapsible.Root
+                                      key={`${releaseKey}-summary`}
+                                      open={isExpanded}
+                                      onOpenChange={() => {
+                                        setExpandedRelease(isExpanded ? null : releaseKey)
+                                      }}
+                                      className={`rounded-lg border transition-colors ${isExpanded ? "border-border/60 bg-muted/30" : "border-border/60 hover:bg-muted/50"}`}
                                     >
-                                      {formatPercent(release.changeFailureRate)}
-                                    </Badge>
-                                  </div>
-                                ))}
+                                      <Collapsible.Trigger className="w-full px-3 py-2 cursor-pointer">
+                                        <div className="flex items-center justify-between gap-4">
+                                          <div className="flex items-center gap-2">
+                                            <ChevronDown
+                                              className={`h-4 w-4 text-muted-foreground transition-transform duration-200 ${isExpanded ? "rotate-180" : ""}`}
+                                            />
+                                            <div className="flex flex-col text-left">
+                                              <span className="text-sm font-semibold">{release.releaseTag}</span>
+                                              <span className="text-xs text-muted-foreground">
+                                                {release.failedTags} patch{release.failedTags === 1 ? "" : "es"} · total{" "}
+                                                {release.totalTags} tag{release.totalTags === 1 ? "" : "s"}
+                                              </span>
+                                            </div>
+                                          </div>
+                                          <Badge
+                                            variant="secondary"
+                                            className={`border ${CFR_BADGE_STYLES[getCfrBand(release.changeFailureRate)]}`}
+                                          >
+                                            {formatPercent(release.changeFailureRate)}
+                                          </Badge>
+                                        </div>
+                                      </Collapsible.Trigger>
+                                      <Collapsible.Panel>
+                                        <div className="border-t border-border/40 px-3 pb-3 pt-2">
+                                          <div className="ml-6 border-l border-border/40 pl-3 space-y-1">
+                                            {release.patchTags.map((patchTag) => (
+                                              <div key={patchTag} className="text-xs text-muted-foreground font-mono">
+                                                └─ {patchTag}
+                                              </div>
+                                            ))}
+                                          </div>
+                                        </div>
+                                      </Collapsible.Panel>
+                                    </Collapsible.Root>
+                                  )
+                                })}
                                 {repo.releases.length > 10 && (
                                   <p className="text-xs text-muted-foreground">
                                     Showing latest 10 releases of {repo.releases.length}.
