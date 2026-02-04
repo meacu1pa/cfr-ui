@@ -48,19 +48,16 @@ export function CfrRepoSection({ generatedAt, error, loading, repos }: CfrRepoSe
               {!loading && error && (
                 <TableRow>
                   <TableCell colSpan={5} className="py-10 text-center text-muted-foreground">
-                    No CFR report found. Run{" "}
-                    <span className="font-mono text-foreground">
-                      bun run compute-cfr -- --repos repos.json --out public/data/cfr.json
-                    </span>{" "}
-                    to generate it.
+                    CFR report data is unavailable. Confirm the report is generated and available at{" "}
+                    <span className="font-mono text-foreground">public/data/cfr.json</span>.
                   </TableCell>
                 </TableRow>
               )}
               {!loading && !error && repos.length === 0 && (
                 <TableRow>
                   <TableCell colSpan={5} className="py-10 text-center text-muted-foreground">
-                    Add entries to <span className="font-mono text-foreground">repos.json</span> and regenerate the
-                    report.
+                    Add entries to <span className="font-mono text-foreground">repos.json</span> to track more
+                    repositories.
                   </TableCell>
                 </TableRow>
               )}
