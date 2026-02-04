@@ -70,8 +70,10 @@
   --chart-4: #f59e0b;
   --chart-5: #ef4444;
   --cfr-elite: #10b981;
-  --cfr-medium: #0ea5e9;
+  --cfr-high: #3b82f6;
+  --cfr-medium: #f59e0b;
   --cfr-low: #ef4444;
+  --cfr-line: #0b0b0c;
   --sidebar: #f5f5f4;
   --sidebar-foreground: #292524;
   --sidebar-primary: #44403c;
@@ -107,8 +109,10 @@
   --chart-4: #fbbf24;
   --chart-5: #f87171;
   --cfr-elite: #34d399;
-  --cfr-medium: #38bdf8;
+  --cfr-high: #60a5fa;
+  --cfr-medium: #fbbf24;
   --cfr-low: #f87171;
+  --cfr-line: #ffffff;
   --sidebar: #292524;
   --sidebar-foreground: #e7e5e4;
   --sidebar-primary: #d6d3d1;

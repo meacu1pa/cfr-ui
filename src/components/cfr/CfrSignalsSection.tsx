@@ -1,12 +1,12 @@
 import { useState } from "react"
 import { Collapsible } from "@base-ui/react"
 import { ChevronDown } from "lucide-react"
-import { CartesianGrid, Line, LineChart, XAxis, YAxis } from "recharts"
+import { CartesianGrid, Line, LineChart, ReferenceLine, XAxis, YAxis } from "recharts"
 import { Badge } from "@/components/ui/badge"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { ChartContainer, ChartLegend, ChartLegendContent, ChartTooltip, ChartTooltipContent } from "@/components/ui/chart"
+import { ChartContainer, ChartTooltip, ChartTooltipContent } from "@/components/ui/chart"
 import { Separator } from "@/components/ui/separator"
-import { CFR_BADGE_STYLES, chartConfig, getCfrBand, getLatestReleases } from "@/lib/cfr-ui"
+import { CFR_BADGE_STYLES, CFR_BENCHMARKS, chartConfig, getCfrBand, getLatestReleases } from "@/lib/cfr-ui"
 import { formatPercent } from "@/lib/format"
 import type { CfrRepo } from "@/types/cfr"
 
@@ -34,12 +34,13 @@ export function CfrSignalsSection({ repos }: CfrSignalsSectionProps) {
             release: release.releaseTag,
             cfr: release.changeFailureRate,
           }))
-
           return (
             <Card key={`${repo.url}-signals`}>
               <CardHeader className="space-y-1">
                 <CardTitle className="text-lg">{repo.name}</CardTitle>
-                <CardDescription>{repo.error ?? "CFR history by major/minor release (latest on the right)."}</CardDescription>
+                <CardDescription>
+                  {repo.error ?? "CFR history by major/minor release (latest on the right). Dashed lines mark benchmarks."}
+                </CardDescription>
               </CardHeader>
               <CardContent className="space-y-3">
                 {repo.error ? (
@@ -51,8 +52,41 @@ export function CfrSignalsSection({ repos }: CfrSignalsSectionProps) {
                     <ChartContainer config={chartConfig} className="h-[200px] w-full">
                       <LineChart data={chartData} margin={{ left: 12, right: 12, top: 12, bottom: 0 }} accessibilityLayer>
                         <CartesianGrid vertical={false} />
-                        <XAxis dataKey="release" tickLine={false} axisLine={false} tickMargin={8} />
-                        <YAxis domain={[0, 1]} hide />
+                        {CFR_BENCHMARKS.map((benchmark) => (
+                          <ReferenceLine
+                            key={benchmark.label}
+                            y={benchmark.value}
+                            stroke={benchmark.color}
+                            strokeDasharray="4 4"
+                            strokeOpacity={0.6}
+                          />
+                        ))}
+                        <XAxis
+                          dataKey="release"
+                          tickLine={false}
+                          axisLine={false}
+                          tickMargin={8}
+                          label={{
+                            value: "Release tags (latest on right)",
+                            position: "insideBottom",
+                            offset: -8,
+                            className: "fill-muted-foreground text-[10px]",
+                          }}
+                        />
+                        <YAxis
+                          domain={[0, 1]}
+                          tickLine={false}
+                          axisLine={false}
+                          tickMargin={8}
+                          tickFormatter={(value) => formatPercent(Number(value))}
+                          label={{
+                            value: "CFR",
+                            angle: -90,
+                            position: "insideLeft",
+                            offset: 0,
+                            className: "fill-muted-foreground text-[10px]",
+                          }}
+                        />
                         <ChartTooltip
                           cursor={false}
                           content={
@@ -66,7 +100,6 @@ export function CfrSignalsSection({ repos }: CfrSignalsSectionProps) {
                             />
                           }
                         />
-                        <ChartLegend content={<ChartLegendContent />} />
                         <Line
                           dataKey="cfr"
                           type="monotone"

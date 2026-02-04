@@ -1,6 +1,7 @@
 import { CfrRepoSection } from "@/components/cfr/CfrRepoSection"
 import { CfrSignalsSection } from "@/components/cfr/CfrSignalsSection"
 import { CfrSummaryCards } from "@/components/cfr/CfrSummaryCards"
+import { CfrTrendSection } from "@/components/cfr/CfrTrendSection"
 import { Badge } from "@/components/ui/badge"
 import { ThemeToggle } from "@/components/ui/theme-toggle"
 import { useCfrReport } from "@/lib/use-cfr-report"
@@ -17,9 +18,8 @@ function App() {
             <p className="text-sm font-medium uppercase tracking-[0.4em] text-muted-foreground">Git tag telemetry</p>
             <h1 className="text-4xl font-semibold text-foreground sm:text-5xl">Change Failure Rate</h1>
             <p className="max-w-2xl text-base text-muted-foreground">
-              Pulls release tags straight from git, treats patch releases as failures, and summarizes the change failure
-              rate across repos. Generate new data with{" "}
-              <span className="font-mono text-foreground">bun run compute-cfr</span>.
+              Pulls release tags straight from git, treats patch releases as failures, and summarizes change failure
+              rates across repositories.
             </p>
             <div className="flex flex-wrap items-center gap-3 text-sm text-muted-foreground">
               <span>Rule:</span>
@@ -29,6 +29,8 @@ function App() {
           </div>
           <ThemeToggle />
         </header>
+
+        {report?.repos && report.repos.length > 0 && <CfrTrendSection repos={report.repos} />}
 
         <CfrSummaryCards summary={report?.summary ?? null} />
 
