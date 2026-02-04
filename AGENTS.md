@@ -1,22 +1,23 @@
 # AGENTS.md - CFR-UI Development Guidelines
 
-This file provides guidelines for agentic coding agents working in the CFR-UI React + TypeScript repository.
+Guidelines for agentic coding agents working in the CFR-UI React + TypeScript repository.
 
-## Agent Instructions
+## Operating Expectations
 
-- Run these checks after every change (in order): `bun run lint`, `bun run knip`, `bun run test`, `bun run build`.
+- Run quality gates after every change (in order): `bun run lint`, `bun run knip`, `bun run test`, `bun run build`.
+- Before committing, update documentation when changes affect behavior, workflows, or architecture.
 - Commit messages must be meaningful and follow semver-aligned conventions (e.g., `feat:`, `fix:`, `chore:`, `refactor:`).
-- Regularly review project documentation and update it when committing changes that affect behavior, workflows, or architecture.
-- Capture meaningful learnings during a session (e.g., architectural decisions, solved problems, new patterns). Discourage and document antipatterns when discovered.
+- Capture meaningful learnings during a session (architectural decisions, solved problems, new patterns). Document and discourage antipatterns when discovered.
 
 ## Technology Stack
 
-- **Framework**: React 19.2.0 with TypeScript
-- **Build Tool**: Vite 7.2.4 with HMR
+- **Framework**: React 19.2.4 + TypeScript (strict)
+- **Build Tool**: Vite 7.3.1 with HMR
 - **CSS**: Tailwind CSS 4.1.18 (Shadcn/ui-style utility patterns)
 - **Package Manager**: Bun (bun.lock present)
 - **UI Components**: Local Shadcn/ui-style components + `@base-ui/react` utilities
-- **Charts**: Recharts
+- **Charts**: Recharts 3.7.0
+- **Testing**: Vitest 4.0.18 + Testing Library
 
 ## Development Commands
 
@@ -33,25 +34,32 @@ bun run compute-cfr      # Generate CFR report JSON
 # Code Quality
 bun run lint             # Run ESLint on all TypeScript files
 bun run knip             # Dead-code/unused export checks
-bun run test             # Run Vitest tests once
+bun run test             # Run Vitest tests once (unit + smoke)
+bun run test:unit        # Run unit tests only
+bun run test:smoke       # Run smoke tests only
 bun run test:watch       # Run Vitest in watch mode
 ```
 
-**Note**: Tests run with Vitest; smoke tests live in `src/smoke.test.tsx`.
+**Note**: Smoke tests live in `src/smoke.test.tsx` and use `vitest.smoke.config.ts`.
 
 ## Project Structure
 
 ```
 src/
-├── components/ui/        # Local UI components
-├── lib/                 # Utilities + CFR logic
-├── assets/              # Static assets
-├── App.tsx             # Main application
-├── main.tsx            # Entry point
-└── index.css           # Tailwind CSS + tw-animate
+├── components/cfr/       # CFR-specific UI sections
+├── components/ui/        # Reusable UI components + theme utilities
+├── lib/                  # Utilities + CFR logic
+├── assets/               # Static assets
+├── types/                # Shared types
+├── App.tsx               # Main application
+├── main.tsx              # Entry point
+└── index.css             # Tailwind CSS + tw-animate
+
+public/
+└── data/cfr.json         # Generated CFR report data
 
 scripts/
-└── compute-cfr.ts       # CFR data generator
+└── compute-cfr.ts        # CFR data generator
 ```
 
 ## Import Conventions
@@ -70,16 +78,16 @@ import "./App.css"
 ```
 
 **Rules**:
-- Use absolute imports with `@/` alias for src files
-- Group imports: External → Internal → Styles
-- Named exports for utilities, default exports for main components
+- Use absolute imports with `@/` alias for `src` files.
+- Group imports: External → Internal → Styles.
+- Named exports for utilities, default exports for main components.
 
 ## TypeScript Guidelines
 
-- **Strict mode enabled** - all files must be properly typed
-- **Types or interfaces** are fine; be consistent within a file
-- **Generic components** when appropriate
-- **No implicit any** - always provide explicit types
+- **Strict mode enabled** - all files must be properly typed.
+- **Types or interfaces** are fine; be consistent within a file.
+- **Generic components** when appropriate.
+- **No implicit any** - always provide explicit types.
 
 ```typescript
 // Good
@@ -127,26 +135,27 @@ function Card({ className, ...props }: CardProps) {
 ```
 
 **Rules**:
-- Use functional components (function declarations or arrow functions)
-- Destructure props with defaults
-- Forward refs when needed
-- Use `cn()` utility for class merging
+- Use functional components (function declarations or arrow functions).
+- Destructure props with defaults.
+- Forward refs when needed.
+- Use `cn()` utility for class merging.
 
 ## Styling Guidelines
 
 ### Tailwind CSS
 
-- Use utility classes for all styling
-- Leverage CSS variables for theming
-- Follow Tailwind's default naming conventions
-- Use OKLCH color space (configured)
+- Use utility classes for all styling.
+- Leverage CSS variables for theming.
+- Follow Tailwind's default naming conventions.
+- Use OKLCH color space (configured).
+- Avoid inline styles unless required for dynamic values.
 
 ```typescript
 // Good
 className="flex items-center gap-2 p-4 rounded-lg bg-background border border-border"
 
 // Bad
-style={{ display: 'flex', padding: '1rem' }}
+style={{ display: "flex", padding: "1rem" }}
 ```
 
 ### Responsive Design
@@ -167,10 +176,10 @@ className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4"
 
 ## Error Handling
 
-- Use TypeScript for compile-time safety
-- Implement proper error boundaries for React components
-- Handle async operations with try-catch blocks
-- Provide meaningful error messages
+- Use TypeScript for compile-time safety.
+- Implement proper error boundaries for React components when needed.
+- Handle async operations with try-catch blocks.
+- Provide meaningful error messages.
 
 ```typescript
 // Good
@@ -178,94 +187,44 @@ try {
   const data = await fetchData()
   setData(data)
 } catch (error) {
-  console.error('Failed to fetch data:', error)
-  setError('Unable to load data')
+  console.error("Failed to fetch data:", error)
+  setError("Unable to load data")
 }
 ```
 
-## Linting Rules
-
-ESLint is configured with:
-- TypeScript recommended rules
-- React hooks rules
-- React refresh for HMR
-- Browser environment target
-
-**Always run `bun run lint`, `bun run knip`, `bun run test`, and `bun run build` before committing.**
-
 ## File Organization
 
-- Keep components in `src/components/ui/` for reusable UI
-- Use `src/lib/` for utilities and helpers
-- One component per file
-- Export types/interfaces from component files
-- Avoid barrel exports unless they provide clear value
+- Keep reusable UI in `src/components/ui/`.
+- Keep CFR feature UI in `src/components/cfr/`.
+- Use `src/lib/` for utilities and helpers.
+- One component per file.
+- Export types/interfaces from component files.
+- Avoid barrel exports unless they provide clear value.
 
 ## Performance Considerations
 
-- Use React.memo for expensive components
-- Implement proper dependency arrays in useEffect
-- Avoid unnecessary re-renders with useMemo/useCallback
-- Leverage Vite's build optimizations
-
-## Development Workflow
-
-1. Run `bun run dev` (or `bun run dev:up`) for local development
-2. Make changes following the style guidelines
-3. Run `bun run lint`, `bun run knip`, `bun run test`, `bun run build`
-4. Test components manually in the browser if the change affects UI
-
-## Adding New Dependencies
-
-```bash
-# Add runtime dependency
-bun add package-name
-
-# Add dev dependency
-bun add -D package-name
-
-# Add Shadcn/ui component
-bun add @radix-ui/react-component-name
-```
-
-Always check if similar functionality exists before adding new dependencies.
-
-## Automation & CI
-
-- CI runs on pull requests to `main` and executes: lint → knip → test → build.
-- Dependabot checks dependencies daily for npm and GitHub Actions.
+- Use React.memo for expensive components.
+- Implement proper dependency arrays in `useEffect`.
+- Avoid unnecessary re-renders with `useMemo`/`useCallback`.
+- Leverage Vite build optimizations.
 
 ## Dark Mode
 
-Dark mode is configured with class-based strategy:
-- Add `.dark` class to `<html>` element (handled by ThemeProvider)
-- Use Tailwind's `dark:` prefix for dark-specific styles
-- Theme variables are available via CSS custom properties
-- System preference detection via `prefers-color-scheme` media query
-- User preference persisted in localStorage
-
-### Theme Components
-
-- `ThemeProvider` - Context provider for theme state (light/dark)
-- `ThemeToggle` - Button to toggle between themes
-- `useTheme` - Hook to access theme state and controls
+Dark mode uses a class-based strategy:
+- `ThemeProvider` manages theme state and `<html>` class toggling.
+- `useTheme` hook lives in `src/components/ui/use-theme.ts`.
+- Use Tailwind's `dark:` prefix for dark-specific styles.
+- Theme variables are available via CSS custom properties.
+- System preference detection via `prefers-color-scheme` media query.
+- User preference persists to `localStorage`.
 
 ## Testing
 
 ### Test Configuration
 
-- **Unit tests**: Use jsdom environment (configured in `vitest.config.ts`)
-- **Smoke tests**: Use node environment (configured in `vitest.smoke.config.ts`)
-- **Setup**: Mock localStorage and matchMedia in `src/test-setup.ts`
-
-### Running Tests
-
-```bash
-bun run test        # Run all tests (unit + smoke)
-bun run test:unit   # Run unit tests only
-bun run test:smoke  # Run smoke tests only
-bun run test:watch  # Run tests in watch mode
-```
+- **Unit tests**: jsdom environment (`vitest.config.ts`).
+- **Smoke tests**: node environment (`vitest.smoke.config.ts`).
+- **Setup**: mock localStorage and matchMedia in `src/test-setup.ts`.
 
 ### Component Testing
 
@@ -282,9 +241,20 @@ it("renders correctly", async () => {
       <MyComponent />
     </ThemeProvider>
   )
-  
+
   await waitFor(() => {
     expect(screen.getByText("Hello")).toBeInTheDocument()
   })
 })
 ```
+
+## Automation & CI
+
+- CI runs on PRs to `main`: lint → knip → test → build.
+- Dependabot checks dependencies daily for npm and GitHub Actions.
+
+## Session Learnings (Append)
+
+When you learn something meaningful, append a short entry here:
+- `YYYY-MM-DD: <learning or decision>`
+- If discouraging an antipattern, note the replacement pattern.
