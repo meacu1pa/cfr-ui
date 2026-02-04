@@ -5,6 +5,7 @@ This file provides guidelines for agentic coding agents working in the CFR-UI Re
 ## Agent Instructions
 
 - Run these checks after every change (in order): `bun run lint`, `bun run knip`, `bun run test`, `bun run build`.
+- Commit messages must be meaningful and follow semver-aligned conventions (e.g., `feat:`, `fix:`, `chore:`, `refactor:`).
 
 ## Technology Stack
 
