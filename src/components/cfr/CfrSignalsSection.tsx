@@ -1,12 +1,12 @@
 import { useState } from "react"
 import { Collapsible } from "@base-ui/react"
 import { ChevronDown } from "lucide-react"
-import { Bar, BarChart, CartesianGrid, Cell, XAxis, YAxis } from "recharts"
+import { CartesianGrid, Line, LineChart, XAxis, YAxis } from "recharts"
 import { Badge } from "@/components/ui/badge"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { ChartContainer, ChartTooltip, ChartTooltipContent } from "@/components/ui/chart"
+import { ChartContainer, ChartLegend, ChartLegendContent, ChartTooltip, ChartTooltipContent } from "@/components/ui/chart"
 import { Separator } from "@/components/ui/separator"
-import { CFR_BADGE_STYLES, chartConfig, getCfrBand, getCfrBarColor, getLatestReleases } from "@/lib/cfr-ui"
+import { CFR_BADGE_STYLES, chartConfig, getCfrBand, getLatestReleases } from "@/lib/cfr-ui"
 import { formatPercent } from "@/lib/format"
 import type { CfrRepo } from "@/types/cfr"
 
@@ -33,7 +33,6 @@ export function CfrSignalsSection({ repos }: CfrSignalsSectionProps) {
           const chartData = chartReleases.map((release) => ({
             release: release.releaseTag,
             cfr: release.changeFailureRate,
-            fill: getCfrBarColor(release.changeFailureRate),
           }))
 
           return (
@@ -49,10 +48,10 @@ export function CfrSignalsSection({ repos }: CfrSignalsSectionProps) {
                   <p className="text-sm text-muted-foreground">No major/minor releases found.</p>
                 ) : (
                   <div className="space-y-4">
-                    <ChartContainer config={chartConfig} className="h-24 w-full">
-                      <BarChart data={chartData} margin={{ left: 0, right: 0, top: 6, bottom: 0 }}>
+                    <ChartContainer config={chartConfig} className="h-[200px] w-full">
+                      <LineChart data={chartData} margin={{ left: 12, right: 12, top: 12, bottom: 0 }} accessibilityLayer>
                         <CartesianGrid vertical={false} />
-                        <XAxis dataKey="release" hide />
+                        <XAxis dataKey="release" tickLine={false} axisLine={false} tickMargin={8} />
                         <YAxis domain={[0, 1]} hide />
                         <ChartTooltip
                           cursor={false}
@@ -67,12 +66,15 @@ export function CfrSignalsSection({ repos }: CfrSignalsSectionProps) {
                             />
                           }
                         />
-                        <Bar dataKey="cfr" radius={[4, 4, 0, 0]} maxBarSize={14}>
-                          {chartData.map((entry) => (
-                            <Cell key={entry.release} fill={entry.fill} />
-                          ))}
-                        </Bar>
-                      </BarChart>
+                        <ChartLegend content={<ChartLegendContent />} />
+                        <Line
+                          dataKey="cfr"
+                          type="monotone"
+                          stroke="var(--color-cfr)"
+                          strokeWidth={2}
+                          dot={false}
+                        />
+                      </LineChart>
                     </ChartContainer>
                     <div className="space-y-2">
                       {latestReleases.map((release) => {

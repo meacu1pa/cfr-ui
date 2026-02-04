@@ -4,6 +4,7 @@ import type { CfrRelease, CfrRepo } from "@/types/cfr"
 export const chartConfig = {
   cfr: {
     label: "CFR",
+    color: "var(--cfr-medium)",
   },
 } satisfies ChartConfig
 
@@ -25,13 +26,6 @@ export function getCfrBand(cfr: number): CfrBand {
   if (cfr <= 0.15) return "elite"
   if (cfr <= 0.45) return "medium"
   return "low"
-}
-
-export function getCfrBarColor(cfr: number) {
-  const band = getCfrBand(cfr)
-  if (band === "elite") return "var(--cfr-elite)"
-  if (band === "medium") return "var(--cfr-medium)"
-  return "var(--cfr-low)"
 }
 
 export function getRepoStatus(repo: CfrRepo) {

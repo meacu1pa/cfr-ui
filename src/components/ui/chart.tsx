@@ -1,7 +1,10 @@
 import * as React from "react"
 import {
   ResponsiveContainer,
+  Legend,
   Tooltip,
+  type LegendPayload,
+  type LegendProps,
   type TooltipContentProps,
   type TooltipPayloadEntry,
   type TooltipProps,
@@ -194,9 +197,70 @@ const ChartTooltipContent = React.forwardRef<HTMLDivElement, ChartTooltipContent
 )
 ChartTooltipContent.displayName = "ChartTooltipContent"
 
+const ChartLegend = Legend
+type ChartLegendContentProps = React.ComponentProps<"div"> &
+  LegendProps & {
+    payload?: ReadonlyArray<LegendPayload>
+    nameKey?: string
+  }
+
+const ChartLegendContent = React.forwardRef<HTMLDivElement, ChartLegendContentProps>(
+  ({ className, payload, align = "center", verticalAlign = "bottom", nameKey, ...props }, ref) => {
+    const { config } = useChart()
+
+    if (!payload || payload.length === 0) {
+      return null
+    }
+
+    return (
+      <div
+        ref={ref}
+        className={cn(
+          "flex flex-wrap items-center gap-3 text-xs",
+          verticalAlign === "top" ? "pb-3" : "pt-3",
+          align === "center" && "justify-center",
+          align === "left" && "justify-start",
+          align === "right" && "justify-end",
+          className,
+        )}
+        {...props}
+      >
+        {payload.map((item, index) => {
+          const key = String(nameKey ?? item.dataKey ?? "value")
+          const configItem = config[key]
+          const indicatorColor = item.color ?? `var(--color-${key})`
+          const label = configItem?.label ?? item.value
+
+          if (!label) {
+            return null
+          }
+
+          return (
+            <div key={`${key}-${index}`} className="flex items-center gap-1.5">
+              {configItem?.icon ? (
+                <configItem.icon className="h-3 w-3 text-muted-foreground" />
+              ) : (
+                <span
+                  className="h-2 w-2 rounded-[2px]"
+                  style={{ backgroundColor: indicatorColor }}
+                  aria-hidden
+                />
+              )}
+              <span className="text-muted-foreground">{label}</span>
+            </div>
+          )
+        })}
+      </div>
+    )
+  },
+)
+ChartLegendContent.displayName = "ChartLegendContent"
+
 export {
   ChartContainer,
   ChartTooltip,
   ChartTooltipContent,
+  ChartLegend,
+  ChartLegendContent,
   type ChartConfig,
 }
