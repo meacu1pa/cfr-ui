@@ -1,45 +1,24 @@
-import { useEffect, useState, createContext, useContext, type ReactNode } from "react"
-
-type Theme = "light" | "dark"
-
-interface ThemeContextType {
-  theme: Theme
-  setTheme: (theme: Theme) => void
-  toggleTheme: () => void
-}
-
-const ThemeContext = createContext<ThemeContextType | undefined>(undefined)
+import { useEffect, useLayoutEffect, useState, type ReactNode } from "react"
+import { ThemeContext, type Theme } from "./theme-context"
 
 export function ThemeProvider({ children }: { children: ReactNode }) {
-  const [theme, setThemeState] = useState<Theme>("light")
-  const [mounted, setMounted] = useState(false)
+  const [theme, setThemeState] = useState<Theme>(() => {
+    if (typeof window === "undefined") return "light"
 
-  // Initialize theme from localStorage/system preference
-  useEffect(() => {
-    const initializeTheme = () => {
-      let initialTheme: Theme = "light"
-      if (typeof window !== "undefined") {
-        const stored = localStorage.getItem("theme") as Theme | null
-        if (stored) {
-          initialTheme = stored
-        } else if (window.matchMedia("(prefers-color-scheme: dark)").matches) {
-          initialTheme = "dark"
-        }
-      }
-      return initialTheme
+    const stored = localStorage.getItem("theme") as Theme | null
+    if (stored) return stored
+
+    if (window.matchMedia("(prefers-color-scheme: dark)").matches) {
+      return "dark"
     }
-    
-    const initialTheme = initializeTheme()
-    // Theme initialization requires reading from localStorage/system preference
-    // This is a one-time setup effect, not a cascading render issue
-    setThemeState(initialTheme) // eslint-disable-line react-hooks/set-state-in-effect
-    setMounted(true)
-  }, [])
+
+    return "light"
+  })
+
+  const useIsomorphicLayoutEffect = typeof window === "undefined" ? useEffect : useLayoutEffect
 
   // Apply theme class and persist to localStorage
-  useEffect(() => {
-    if (!mounted) return
-    
+  useIsomorphicLayoutEffect(() => {
     const root = document.documentElement
     if (theme === "dark") {
       root.classList.add("dark")
@@ -47,7 +26,7 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
       root.classList.remove("dark")
     }
     localStorage.setItem("theme", theme)
-  }, [theme, mounted])
+  }, [theme])
 
   const setTheme = (newTheme: Theme) => {
     setThemeState(newTheme)
@@ -57,20 +36,5 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
     setThemeState((prev) => (prev === "light" ? "dark" : "light"))
   }
 
-  return (
-    <ThemeContext.Provider value={{ theme, setTheme, toggleTheme }}>
-      <div style={{ visibility: mounted ? "visible" : "hidden" }}>
-        {children}
-      </div>
-    </ThemeContext.Provider>
-  )
-}
-
-// eslint-disable-next-line react-refresh/only-export-components
-export function useTheme() {
-  const context = useContext(ThemeContext)
-  if (context === undefined) {
-    throw new Error("useTheme must be used within a ThemeProvider")
-  }
-  return context
+  return <ThemeContext.Provider value={{ theme, setTheme, toggleTheme }}>{children}</ThemeContext.Provider>
 }
