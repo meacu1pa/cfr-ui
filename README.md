@@ -90,6 +90,16 @@ bun run compute-cfr -- --repos repos.json --out public/data/cfr.json
 bun run dev
 ```
 
+## Theme Support
+
+The UI supports both light and dark modes:
+
+- **Automatic detection**: On first visit, the app detects your browser/system preference using `prefers-color-scheme`
+- **Manual toggle**: Use the sun/moon button in the top-right corner to switch themes
+- **Persistence**: Your preference is saved to localStorage and restored on subsequent visits
+
+The theme system uses CSS variables and Tailwind's `dark:` modifier for consistent styling across both modes.
+
 ## Tests
 
 Run the unit tests with:
