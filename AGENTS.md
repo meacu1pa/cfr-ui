@@ -258,3 +258,5 @@ it("renders correctly", async () => {
 When you learn something meaningful, append a short entry here:
 - `YYYY-MM-DD: <learning or decision>`
 - If discouraging an antipattern, note the replacement pattern.
+
+- `2026-02-05: Split Vite vendor chunks by library group (charts/base-ui/icons) and keep React in the shared vendor chunk to avoid circular chunk warnings.`
