@@ -1,4 +1,4 @@
-# Change Failure Rate Checker 2.0
+# Change Failure Rate Checker
 
 This app provides a simple dashboard for CFR statistics across multiple repositories. The data is downloaded once and can then be compiled into a React app using Vite.
 
