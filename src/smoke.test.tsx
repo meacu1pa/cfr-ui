@@ -17,7 +17,7 @@ describe("smoke", () => {
     )
 
     expect(html).toContain("Change Failure Rate")
-    expect(html).toContain("Git tag telemetry")
+    expect(html).toContain("SemVer telemetry")
   })
 
   it("builds the site", { timeout: 120_000 }, async () => {
