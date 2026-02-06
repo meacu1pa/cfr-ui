@@ -7,8 +7,26 @@ Guidelines for agentic coding agents working in the CFR-UI React + TypeScript re
 - Run quality gates after every change (in order): `bun run lint`, `bun run knip`, `bun run test`, `bun run build:dev`.
 - Run the production release gate with `bun run build` before deployment (includes CFR recomputation).
 - Before committing, update documentation when changes affect behavior, workflows, or architecture.
-- Commit messages must be meaningful and follow semver-aligned conventions (e.g., `feat:`, `fix:`, `chore:`, `refactor:`).
+- Commit messages must follow the Conventional Commits + SemVer mapping defined in `Commit Conventions (SemVer)` below.
 - Capture meaningful learnings during a session (architectural decisions, solved problems, new patterns). Document and discourage antipatterns when discovered.
+
+## Commit Conventions (SemVer)
+
+Use Conventional Commits for all commit messages so versioning can be derived consistently.
+
+Core SemVer-mapped types:
+- `fix:` Bug fix. Maps to a PATCH release (`1.0.0` -> `1.0.1`).
+- `feat:` New feature. Maps to a MINOR release (`1.0.0` -> `1.1.0`).
+- `BREAKING CHANGE:` Footer (or `!` after type/scope, e.g. `feat!:`). Maps to a MAJOR release (`1.0.0` -> `2.0.0`).
+
+Other common Conventional Commit types:
+- `build:` Build system or external dependency changes.
+- `ci:` CI configuration and script changes.
+- `docs:` Documentation-only changes.
+- `perf:` Performance improvements.
+- `refactor:` Code change that is neither a feature nor bug fix.
+- `style:` Formatting/whitespace/code style changes with no behavior change.
+- `test:` Adding or correcting tests.
 
 ## Technology Stack
 
@@ -259,3 +277,4 @@ When you learn something meaningful, append a short entry here:
 - `2026-02-05:` Split Vite vendor chunks by library group (charts/base-ui/icons) and keep React in the shared vendor chunk to avoid circular chunk warnings.
 - `2026-02-06:` Added separate build scripts: use \`build:dev\` for fast local quality gates and \`build\` for release builds that recompute CFR data.
 - `2026-02-06:` Added Docker Compose workflow using the official \`oven/bun\` image with a container entrypoint that installs dependencies so lint/knip/test/build can run without host Bun.`
+- `2026-02-06:` Documented Conventional Commit rules with explicit SemVer mapping (`fix`=PATCH, `feat`=MINOR, `BREAKING CHANGE`/`!`=MAJOR) and common auxiliary commit types.
