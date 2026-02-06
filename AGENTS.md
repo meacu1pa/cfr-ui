@@ -250,16 +250,12 @@ it("renders correctly", async () => {
 })
 ```
 
-## Automation & CI
-
-- CI runs on PRs to `main`: lint → knip → test → build.
-- Dependabot checks dependencies daily for npm and GitHub Actions.
-
 ## Session Learnings (Append)
 
 When you learn something meaningful, append a short entry here:
-- `YYYY-MM-DD: <learning or decision>`
+- `YYYY-MM-DD:` <learning>
 - If discouraging an antipattern, note the replacement pattern.
 
-- `2026-02-05: Split Vite vendor chunks by library group (charts/base-ui/icons) and keep React in the shared vendor chunk to avoid circular chunk warnings.`
-- `2026-02-06: Added separate build scripts: use \`build:dev\` for fast local quality gates and \`build\` for release builds that recompute CFR data.`
+- `2026-02-05:` Split Vite vendor chunks by library group (charts/base-ui/icons) and keep React in the shared vendor chunk to avoid circular chunk warnings.
+- `2026-02-06:` Added separate build scripts: use \`build:dev\` for fast local quality gates and \`build\` for release builds that recompute CFR data.
+- `2026-02-06:` Added Docker Compose workflow using the official \`oven/bun\` image with a container entrypoint that installs dependencies so lint/knip/test/build can run without host Bun.`
