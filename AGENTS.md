@@ -4,7 +4,8 @@ Guidelines for agentic coding agents working in the CFR-UI React + TypeScript re
 
 ## Operating Expectations
 
-- Run quality gates after every change (in order): `bun run lint`, `bun run knip`, `bun run test`, `bun run build`.
+- Run quality gates after every change (in order): `bun run lint`, `bun run knip`, `bun run test`, `bun run build:dev`.
+- Run the production release gate with `bun run build` before deployment (includes CFR recomputation).
 - Before committing, update documentation when changes affect behavior, workflows, or architecture.
 - Commit messages must be meaningful and follow semver-aligned conventions (e.g., `feat:`, `fix:`, `chore:`, `refactor:`).
 - Capture meaningful learnings during a session (architectural decisions, solved problems, new patterns). Document and discourage antipatterns when discovered.
@@ -27,7 +28,8 @@ bun run dev              # Start dev server with HMR
 bun run dev:up           # Recompute CFR data then start dev server
 
 # Building
-bun run build            # Production build (TypeScript + Vite)
+bun run build:dev        # Development build validation (TypeScript + Vite, no CFR recompute)
+bun run build            # Production build (TypeScript + CFR recompute + Vite)
 bun run preview          # Preview production build locally
 bun run compute-cfr      # Generate CFR report JSON
 
@@ -260,3 +262,4 @@ When you learn something meaningful, append a short entry here:
 - If discouraging an antipattern, note the replacement pattern.
 
 - `2026-02-05: Split Vite vendor chunks by library group (charts/base-ui/icons) and keep React in the shared vendor chunk to avoid circular chunk warnings.`
+- `2026-02-06: Added separate build scripts: use \`build:dev\` for fast local quality gates and \`build\` for release builds that recompute CFR data.`

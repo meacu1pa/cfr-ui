@@ -90,7 +90,20 @@ export function CfrRepoSection({ generatedAt, error, loading, repos }: CfrRepoSe
                       <TableCell className="font-medium">
                         <div className="flex flex-col">
                           <span>{repo.name}</span>
-                          <span className="text-xs text-muted-foreground">{repo.url}</span>
+                          <a
+                            href={repo.url}
+                            target="_blank"
+                            rel="noreferrer"
+                            onClick={(event) => {
+                              event.stopPropagation()
+                            }}
+                            onKeyDown={(event) => {
+                              event.stopPropagation()
+                            }}
+                            className="w-fit text-xs text-muted-foreground underline-offset-4 hover:text-foreground hover:underline"
+                          >
+                            {repo.url}
+                          </a>
                         </div>
                       </TableCell>
                       <TableCell className="text-right">{formatNumber(repo.totalReleases)}</TableCell>
