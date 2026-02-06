@@ -18,7 +18,7 @@ function App() {
         <header className="flex items-start justify-between gap-4 animate-in fade-in duration-700">
           <div className="space-y-3">
             <p className="text-sm font-medium uppercase tracking-[0.4em] text-muted-foreground">SemVer telemetry</p>
-            <h1 className="text-4xl font-semibold text-foreground sm:text-5xl">Change Failure Rate Checker</h1>
+            <h1 className="text-4xl font-semibold text-foreground sm:text-5xl">Change Failure Rate UI</h1>
             <p className="max-w-2xl text-base text-muted-foreground">
               Pulls release tags straight from git, treats patch releases as failures, summarizes change failure
               rates across repositories.

@@ -16,7 +16,7 @@ describe("smoke", () => {
       </ThemeProvider>
     )
 
-    expect(html).toContain("Change Failure Rate")
+    expect(html).toContain("Change Failure Rate UI")
     expect(html).toContain("SemVer telemetry")
   })
 
