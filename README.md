@@ -51,3 +51,8 @@ If you want to run the steps manually:
 bun run compute-cfr -- --repos repos.json --out public/data/cfr.json
 bun run dev
 ```
+
+## Build Commands
+
+- `bun run build:dev`: Fast local build validation (type-check + Vite build) without recomputing CFR data.
+- `bun run build`: Release/deploy build (type-check + CFR recompute + Vite build).
