@@ -56,3 +56,40 @@ bun run dev
 
 - `bun run build:dev`: Fast local build validation (type-check + Vite build) without recomputing CFR data.
 - `bun run build`: Release/deploy build (type-check + CFR recompute + Vite build).
+
+## Docker Compose (No Local Bun Required)
+
+This repo includes a Bun-based Docker setup so you can develop and run quality gates without installing Bun on your host machine.
+
+1. Start the dev server in Docker:
+
+   ```bash
+   docker compose up -d
+   ```
+
+2. Open the app at:
+
+   ```text
+   http://localhost:5173
+   ```
+
+Run any project script in the same container image:
+
+```bash
+docker compose run --rm app bun run lint
+docker compose run --rm app bun run knip
+docker compose run --rm app bun run test
+docker compose run --rm app bun run build:dev
+docker compose run --rm app bun run build
+```
+
+Open an interactive shell in the container:
+
+```bash
+docker compose exec app sh
+```
+
+Notes:
+
+- The container uses the official Bun image: `oven/bun`.
+- Dependencies are installed inside the container on startup via `bun install --frozen-lockfile` (configured directly in `docker-compose.yml`).
