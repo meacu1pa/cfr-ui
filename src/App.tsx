@@ -6,6 +6,7 @@ import { BackToTop } from "@/components/ui/back-to-top"
 import { Badge } from "@/components/ui/badge"
 import { ThemeToggle } from "@/components/ui/theme-toggle"
 import { useCfrReport } from "@/lib/use-cfr-report"
+import { Github } from "lucide-react"
 import "./App.css"
 
 function App() {
@@ -28,7 +29,18 @@ function App() {
               <Badge variant="outline">x.y.z (z &gt; 0) = failure</Badge>
             </div>
           </div>
-          <ThemeToggle />
+          <div className="flex items-center gap-2">
+            <a
+              href="https://github.com/meacu1pa/cfr-ui"
+              target="_blank"
+              rel="noreferrer"
+              className="inline-flex items-center justify-center rounded-md border border-border bg-background p-2 text-sm font-medium ring-offset-background transition-colors hover:bg-accent hover:text-accent-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
+              aria-label="Open CFR UI GitHub repository"
+            >
+              <Github className="h-4 w-4" />
+            </a>
+            <ThemeToggle />
+          </div>
         </header>
 
         {report?.repos && report.repos.length > 0 && <CfrTrendSection repos={report.repos} />}
@@ -43,6 +55,10 @@ function App() {
         />
 
         {!loading && report && report.repos.length > 0 && <CfrSignalsSection repos={report.repos} />}
+
+        <footer className="mt-auto border-t border-border pt-6 text-center text-sm text-muted-foreground">
+          made with ❤️ in Cologne, Germany
+        </footer>
       </div>
       <BackToTop />
     </div>
