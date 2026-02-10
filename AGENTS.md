@@ -177,3 +177,5 @@ When you learn something meaningful, append a short entry here:
 - `2026-02-06:` Added separate build scripts: use `build:dev` for fast local quality gates and `build` for release builds that recompute CFR data.
 - `2026-02-06:` Added Docker Compose workflow using the official `oven/bun` image so lint/knip/test/build can run without host Bun.
 - `2026-02-06:` Documented Conventional Commit rules with explicit SemVer mapping (`fix`=PATCH, `feat`=MINOR, `BREAKING CHANGE`/`!`=MAJOR) and common auxiliary commit types.
+- `2026-02-10:` Upgrade `eslint` and `@eslint/js` together on major bumps; treat them as a coupled toolchain update and validate via lint -> knip -> test -> build:dev.
+- `2026-02-10:` Dependabot tracks Docker image updates more reliably when `docker-compose.yml` uses explicit tags (for example `oven/bun:1.3.9`) instead of moving major tags.
