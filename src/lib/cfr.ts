@@ -1,4 +1,4 @@
-export type ParsedTag = {
+type ParsedTag = {
   name: string
   major: number
   minor: number

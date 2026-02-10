@@ -15,7 +15,7 @@ export const trendChartConfig = {
   },
 } satisfies ChartConfig
 
-export type CfrBand = "elite" | "high" | "medium" | "low"
+type CfrBand = "elite" | "high" | "medium" | "low"
 
 export const CFR_BADGE_STYLES: Record<CfrBand, string> = {
   elite: "border-emerald-200/80 bg-emerald-500/15 text-emerald-700 dark:border-emerald-500/40 dark:text-emerald-200",
