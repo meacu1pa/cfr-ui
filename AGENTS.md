@@ -159,6 +159,7 @@ Dark mode uses a class-based strategy:
 - Smoke tests run in node (`vitest.smoke.config.ts`) and include build verification.
 - Use Testing Library patterns that assert user-visible behavior.
 - Add or update tests when behavior changes, especially for `src/lib` utilities and critical UI flows.
+- Add tests when fixing bugs to prevent future regressions.
 
 ## Automation & CI
 
