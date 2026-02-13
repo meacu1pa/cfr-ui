@@ -1,5 +1,7 @@
 # Change Failure Rate UI
 
+[![Deploy on Railway](https://railway.com/button.svg)](https://railway.com/deploy/CNtUwe?referralCode=uZ7wW9&utm_medium=integration&utm_source=template&utm_campaign=generic)
+
 This app provides a simple dashboard for CFR statistics across multiple repositories. The data is downloaded once and can then be compiled into a React app using Vite.
 
 The Change Failure Rate (CFR) is one of the four key DORA metrics (also known as the "Four Keys") used to measure the performance of software development teams. While metrics like Deployment Frequency measure velocity (speed), Change Failure Rate specifically measures stability (quality). It is the percentage of deployments to production that result in a failure - such as a bug, service degradation, or system outage that requires immediate remediation (e.g. a rollback, hotfix or patch).
