@@ -1,18 +1,11 @@
+import type { CfrRelease } from "@/types/cfr"
+
 type ParsedTag = {
   name: string
   version: string
   major: number
   minor: number
   patch: number
-}
-
-export type CfrRelease = {
-  version: string
-  releaseTag: string
-  patchTags: string[]
-  totalTags: number
-  failedTags: number
-  changeFailureRate: number
 }
 
 export type RepoCfrResult = {

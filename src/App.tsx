@@ -6,7 +6,7 @@ import { BackToTop } from "@/components/ui/back-to-top"
 import { Badge } from "@/components/ui/badge"
 import { ThemeToggle } from "@/components/ui/theme-toggle"
 import { useCfrReport } from "@/lib/use-cfr-report"
-import { Github } from "lucide-react"
+import { GitBranch } from "lucide-react"
 import "./App.css"
 
 function App() {
@@ -37,7 +37,7 @@ function App() {
               className="inline-flex items-center justify-center rounded-md border border-border bg-background p-2 text-sm font-medium ring-offset-background transition-colors hover:bg-accent hover:text-accent-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
               aria-label="Open CFR UI GitHub repository"
             >
-              <Github className="h-4 w-4" />
+              <GitBranch className="h-4 w-4" />
             </a>
             <ThemeToggle />
           </div>
