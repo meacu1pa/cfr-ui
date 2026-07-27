@@ -37,6 +37,10 @@ describe("buildReport", () => {
 })
 
 describe("parseArgs", () => {
+  it("defaults to exact production semver tags", () => {
+    expect(parseArgs([]).versionPattern).toBe(String.raw`^v?\d+\.\d+\.\d+$`)
+  })
+
   it("overrides defaults when flags are provided", () => {
     const options = parseArgs([
       "--repos",

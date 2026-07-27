@@ -35,7 +35,7 @@ type BuildReportOptions = {
   repos: CfrRepo[]
 }
 
-const DEFAULT_VERSION_PATTERN = String.raw`^v?\d+\.\d+\.\d+(?:[-+].+)?$`
+const DEFAULT_VERSION_PATTERN = String.raw`^v?\d+\.\d+\.\d+$`
 
 type CliOptions = {
   reposPath: string
