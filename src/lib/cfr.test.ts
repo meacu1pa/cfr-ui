@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest"
 import { computeReleaseCfr } from "@/lib/cfr"
 
-const VERSION_REGEX = /^v?\d+\.\d+\.\d+(?:[-+].+)?$/
+const VERSION_REGEX = /^v?\d+\.\d+\.\d+$/
 
 describe("computeReleaseCfr", () => {
   it("treats x.y.0 as a release and patches as failures", () => {
@@ -38,11 +38,30 @@ describe("computeReleaseCfr", () => {
     expect(result.releases[1].failedTags).toBe(1)
   })
 
-  it("filters tags that do not match the version regex", () => {
-    const result = computeReleaseCfr(["v1.0.0", "build-123", "v1.0.1-hotfix"], VERSION_REGEX)
+  it("filters tags that do not match the strict production version regex", () => {
+    const result = computeReleaseCfr(
+      ["v1.0.0", "v1.0.1", "v1.0.1-hotfix", "v1.0.1+build.1", "v1.0.0-rc.1", "build-123"],
+      VERSION_REGEX,
+    )
 
     expect(result.totalReleases).toBe(1)
     expect(result.totalPatchFailures).toBe(1)
-    expect(result.releases[0].patchTags).toEqual(["v1.0.1-hotfix"])
+    expect(result.releases[0].patchTags).toEqual(["v1.0.1"])
+  })
+
+  it("dedupes v-prefixed and unprefixed patch aliases", () => {
+    const result = computeReleaseCfr(["v1.0.0", "v1.0.1", "1.0.1", "v1.0.2"], VERSION_REGEX)
+
+    expect(result.totalReleases).toBe(1)
+    expect(result.totalPatchFailures).toBe(2)
+    expect(result.releases[0].patchTags).toEqual(["v1.0.1", "v1.0.2"])
+  })
+
+  it("dedupes v-prefixed and unprefixed release aliases", () => {
+    const result = computeReleaseCfr(["v1.0.0", "1.0.0", "v1.0.1"], VERSION_REGEX)
+
+    expect(result.totalReleases).toBe(1)
+    expect(result.totalPatchFailures).toBe(1)
+    expect(result.releases[0].releaseTag).toBe("v1.0.0")
   })
 })

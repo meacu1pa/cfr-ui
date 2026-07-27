@@ -1,5 +1,6 @@
 type ParsedTag = {
   name: string
+  version: string
   major: number
   minor: number
   patch: number
@@ -21,17 +22,21 @@ export type RepoCfrResult = {
   releases: CfrRelease[]
 }
 
-const SEMVER_PREFIX = /^v?(\d+)\.(\d+)\.(\d+)/
+const SEMVER_TAG = /^v?(\d+)\.(\d+)\.(\d+)$/
 
 function parseSemverTag(tag: string, versionRegex: RegExp): ParsedTag | null {
   if (!versionRegex.test(tag)) return null
-  const match = tag.match(SEMVER_PREFIX)
+  const match = tag.match(SEMVER_TAG)
   if (!match) return null
+  const major = Number(match[1])
+  const minor = Number(match[2])
+  const patch = Number(match[3])
   return {
     name: tag,
-    major: Number(match[1]),
-    minor: Number(match[2]),
-    patch: Number(match[3]),
+    version: `${major}.${minor}.${patch}`,
+    major,
+    minor,
+    patch,
   }
 }
 
@@ -40,17 +45,28 @@ export function computeReleaseCfr(tags: string[], versionRegex: RegExp): RepoCfr
     .map((tag) => parseSemverTag(tag, versionRegex))
     .filter((tag): tag is ParsedTag => Boolean(tag))
 
-  const groups = new Map<string, { major: number; minor: number; releaseTag: string | null; patchTags: ParsedTag[] }>()
+  const groups = new Map<
+    string,
+    { major: number; minor: number; releaseTag: string | null; patchTags: ParsedTag[]; seenVersions: Set<string> }
+  >()
 
   for (const tag of parsedTags) {
     const key = `${tag.major}.${tag.minor}`
-    const group = groups.get(key) ?? { major: tag.major, minor: tag.minor, releaseTag: null, patchTags: [] }
+    const group = groups.get(key) ?? {
+      major: tag.major,
+      minor: tag.minor,
+      releaseTag: null,
+      patchTags: [],
+      seenVersions: new Set<string>(),
+    }
+    if (group.seenVersions.has(tag.version)) continue
 
     if (tag.patch === 0) {
       group.releaseTag = group.releaseTag ?? tag.name
     } else {
       group.patchTags.push(tag)
     }
+    group.seenVersions.add(tag.version)
 
     groups.set(key, group)
   }

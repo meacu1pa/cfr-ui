@@ -3,7 +3,7 @@ import path from "node:path"
 import type { RepoCfrResult } from "@/lib/cfr"
 import { computeReleaseCfr } from "@/lib/cfr"
 
-type RepoInput = {
+export type RepoInput = {
   name?: string
   url: string
 }
@@ -35,7 +35,7 @@ type BuildReportOptions = {
   repos: CfrRepo[]
 }
 
-const DEFAULT_VERSION_PATTERN = String.raw`^v?\d+\.\d+\.\d+(?:[-+].+)?$`
+const DEFAULT_VERSION_PATTERN = String.raw`^v?\d+\.\d+\.\d+$`
 
 type CliOptions = {
   reposPath: string
@@ -96,6 +96,34 @@ function deriveNameFromUrl(url: string): string {
   const lastColon = trimmed.lastIndexOf(":")
   const splitIndex = Math.max(lastSlash, lastColon)
   return splitIndex >= 0 ? trimmed.slice(splitIndex + 1) : trimmed
+}
+
+function isRecord(value: unknown): value is Record<string, unknown> {
+  return typeof value === "object" && value !== null
+}
+
+export function parseReposInput(value: unknown): RepoInput[] {
+  if (!Array.isArray(value)) {
+    throw new Error("repos.json must contain an array")
+  }
+
+  return value.map((entry, index) => {
+    if (!isRecord(entry)) {
+      throw new Error(`repos.json entry ${index} must be an object`)
+    }
+
+    if (typeof entry.url !== "string" || entry.url.trim().length === 0) {
+      throw new Error(`repos.json entry ${index} must include a non-empty string url`)
+    }
+
+    const name = entry.name
+
+    if (name !== undefined && typeof name !== "string") {
+      throw new Error(`repos.json entry ${index} name must be a string when provided`)
+    }
+
+    return name === undefined ? { url: entry.url } : { name, url: entry.url }
+  })
 }
 
 async function runGitTags(url: string): Promise<{ output: string; error: string | null }> {
@@ -162,7 +190,7 @@ async function main() {
   }
 
   const reposRaw = await readFile(options.reposPath, "utf8")
-  const reposInput: RepoInput[] = JSON.parse(reposRaw)
+  const reposInput = parseReposInput(JSON.parse(reposRaw))
 
   const versionRegex = new RegExp(options.versionPattern)
 

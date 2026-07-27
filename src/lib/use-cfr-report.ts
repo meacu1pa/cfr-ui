@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react"
+import { parseCfrReport } from "@/lib/cfr-report"
 import type { CfrReport } from "@/types/cfr"
 
 type UseCfrReportResult = {
@@ -21,9 +22,9 @@ export function useCfrReport(): UseCfrReportResult {
         }
         return response.json()
       })
-      .then((data: CfrReport) => {
+      .then((data: unknown) => {
         if (!active) return
-        setReport(data)
+        setReport(parseCfrReport(data))
         setError(null)
       })
       .catch((err: Error) => {

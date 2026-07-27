@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest"
-import { buildReport, parseArgs } from "./compute-cfr"
+import { buildReport, parseArgs, parseReposInput } from "./compute-cfr"
 
 describe("buildReport", () => {
   it("summarizes repos and computes the CFR rate", () => {
@@ -37,6 +37,10 @@ describe("buildReport", () => {
 })
 
 describe("parseArgs", () => {
+  it("defaults to exact production semver tags", () => {
+    expect(parseArgs([]).versionPattern).toBe(String.raw`^v?\d+\.\d+\.\d+$`)
+  })
+
   it("overrides defaults when flags are provided", () => {
     const options = parseArgs([
       "--repos",
@@ -54,5 +58,43 @@ describe("parseArgs", () => {
       versionPattern: "^v",
       showHelp: true,
     })
+  })
+})
+
+describe("parseReposInput", () => {
+  it("requires repos.json to contain an array", () => {
+    expect(() => parseReposInput({ url: "https://example.com/repo.git" })).toThrow(
+      "repos.json must contain an array",
+    )
+  })
+
+  it("requires each entry to include a string url", () => {
+    expect(() => parseReposInput([{ name: "repo" }])).toThrow(
+      "repos.json entry 0 must include a non-empty string url",
+    )
+  })
+
+  it("rejects blank urls", () => {
+    expect(() => parseReposInput([{ url: "  " }])).toThrow(
+      "repos.json entry 0 must include a non-empty string url",
+    )
+  })
+
+  it("requires names to be strings when provided", () => {
+    expect(() => parseReposInput([{ name: 123, url: "https://example.com/repo.git" }])).toThrow(
+      "repos.json entry 0 name must be a string when provided",
+    )
+  })
+
+  it("returns valid entries unchanged", () => {
+    expect(
+      parseReposInput([
+        { name: "repo", url: "https://example.com/repo.git" },
+        { url: "https://example.com/unnamed.git" },
+      ]),
+    ).toEqual([
+      { name: "repo", url: "https://example.com/repo.git" },
+      { url: "https://example.com/unnamed.git" },
+    ])
   })
 })

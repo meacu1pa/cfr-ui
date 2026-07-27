@@ -22,6 +22,8 @@ Ensure your team uses a consistent tagging pattern. For example:
 - v1.2.0: A new feature or maintenance release (Minor).
 - v1.2.1: A hotfix for a bug found in v1.2.0 (Patch).
 
+By default, the generator includes exact `x.y.z` and `vx.y.z` production tags and ignores prerelease, build, or suffixed tags unless `--version-pattern` is explicitly overridden.
+
 | Version | Type | Status | Counted As... |
 | :--- | :--- | :--- | :--- |
 | `v2.1.0` | Minor | Success | Total Deployment |
