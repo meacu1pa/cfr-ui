@@ -1,17 +1,6 @@
 {
-  "entry": [
-    "src/main.tsx"
-  ],
   "project": [
     "src/**/*.{ts,tsx}",
     "scripts/**/*.ts"
-  ],
-  "ignore": [
-    "dist/**",
-    "public/**"
-  ],
-  "ignoreDependencies": [
-    "tailwindcss",
-    "tw-animate-css"
   ]
 }
