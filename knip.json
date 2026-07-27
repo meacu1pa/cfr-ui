@@ -1,6 +1,7 @@
 {
   "project": [
     "src/**/*.{ts,tsx}",
+    "src/**/*.css",
     "scripts/**/*.ts"
   ]
 }

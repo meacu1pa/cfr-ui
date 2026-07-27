@@ -180,3 +180,4 @@ When you learn something meaningful, append a short entry here:
 - `2026-02-06:` Documented Conventional Commit rules with explicit SemVer mapping (`fix`=PATCH, `feat`=MINOR, `BREAKING CHANGE`/`!`=MAJOR) and common auxiliary commit types.
 - `2026-02-10:` Upgrade `eslint` and `@eslint/js` together on major bumps; treat them as a coupled toolchain update and validate via lint -> knip -> test -> build:dev.
 - `2026-02-10:` Dependabot tracks Docker image updates more reliably when `docker-compose.yml` uses explicit tags (for example `oven/bun:1.3.9`) instead of moving major tags.
+- `2026-07-27:` TypeScript 7 is not yet supported by `typescript-eslint`; keep TypeScript on the latest 6.x line and use an explicit `vite` override when Vitest resolves a stale nested Vite major.
